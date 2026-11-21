@@ -1,0 +1,127 @@
+{% extends "alumni/base.html" %}
+
+{% block content %}
+<!-- Accueil : bandeau de marque (bleu ciel) -->
+<section class="bg-sky-500">
+  <div class="container-page py-14 lg:py-20 grid gap-12 lg:grid-cols-12 items-center">
+    <div class="lg:col-span-7">
+      <p class="inline-flex items-center gap-2 rounded-full bg-white/90 text-gray-900 px-4 py-1.5 text-sm font-semibold">
+        <span class="w-2 h-2 rounded-full bg-sky-600"></span> Initiative de la 4ème promotion
+      </p>
+      <h1 class="mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-950 leading-[1.08]">
+        Les anciens de la Prépa de San-Pédro, enfin réunis au même endroit.
+      </h1>
+      <p class="mt-6 max-w-xl text-lg text-gray-900/80 leading-relaxed">
+        Retrouvez votre promotion, partagez des offres d'emploi et de stage, et gardez le contact avec le réseau, où que vous soyez.
+      </p>
+      <div class="mt-9 flex flex-col sm:flex-row gap-3">
+        {% if current_member %}
+        <a href="{% url 'feed' %}" class="btn btn-dark px-7 py-3.5 text-base">Voir les actualités</a>
+        <a href="{% url 'members' %}" class="btn bg-white text-gray-950 hover:bg-sky-50 px-7 py-3.5 text-base">Parcourir l'annuaire</a>
+        {% else %}
+        <a href="{% url 'register' %}" class="btn btn-dark px-7 py-3.5 text-base">Rejoindre le réseau</a>
+        <a href="{% url 'login' %}" class="btn bg-white text-gray-950 hover:bg-sky-50 px-7 py-3.5 text-base">Se connecter</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="lg:col-span-5">
+      <div class="rounded-3xl bg-white p-2 shadow-lg">
+        <div class="aspect-[4/3] rounded-2xl bg-sky-100 overflow-hidden">
+          <img src="https://sc04.alicdn.com/kf/A828d107947df4ea0be8bff74858715a0m.jpeg" alt="Le campus de la Prépa de San-Pédro" class="w-full h-full object-cover" onerror="this.remove()">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if stats %}
+<section class="border-b border-gray-200 bg-white">
+  <dl class="container-page grid grid-cols-2 lg:grid-cols-4 divide-x divide-gray-200">
+    <div class="py-6 px-4 first:pl-0"><dt class="text-sm text-gray-500">Membres</dt><dd class="font-display text-3xl font-bold text-gray-950">{{ stats.members }}</dd></div>
+    <div class="py-6 px-4"><dt class="text-sm text-gray-500">Promotions représentées</dt><dd class="font-display text-3xl font-bold text-gray-950">{{ stats.promos }}</dd></div>
+    <div class="py-6 px-4 border-t border-gray-200 lg:border-t-0"><dt class="text-sm text-gray-500">Mentors</dt><dd class="font-display text-3xl font-bold text-gray-950">{{ stats.mentors }}</dd></div>
+    <div class="py-6 px-4 border-t border-gray-200 lg:border-t-0"><dt class="text-sm text-gray-500">Offres en cours</dt><dd class="font-display text-3xl font-bold text-gray-950">{{ stats.jobs }}</dd></div>
+  </dl>
+</section>
+{% endif %}
+
+<!-- Ce que le réseau permet -->
+<section class="py-20 lg:py-24">
+  <div class="container-page">
+    <div class="max-w-2xl">
+      <h2 class="text-3xl lg:text-4xl font-bold leading-tight">Un réseau pour s'entraider, pas seulement pour se souvenir.</h2>
+      <p class="mt-4 text-lg text-gray-600">Tout ce dont une communauté d'anciens a besoin, réuni dans un seul espace sécurisé.</p>
+    </div>
+    <div class="mt-12 grid gap-px bg-gray-200 border border-gray-200 rounded-2xl overflow-hidden md:grid-cols-3">
+      <a href="{% url 'members' %}" class="group bg-white p-8 hover:bg-sky-50 transition-colors">
+        <i data-lucide="users" class="w-7 h-7 text-sky-700"></i>
+        <h3 class="mt-6 text-xl font-semibold">Annuaire des membres</h3>
+        <p class="mt-2 text-gray-600 leading-relaxed">Cherchez par promotion, métier, secteur ou pays, et contactez directement la bonne personne.</p>
+        <span class="mt-5 inline-flex text-sm font-semibold text-sky-700 group-hover:underline">Ouvrir l'annuaire</span>
+      </a>
+      <a href="{% url 'feed' %}" class="group bg-white p-8 hover:bg-sky-50 transition-colors">
+        <i data-lucide="briefcase" class="w-7 h-7 text-sky-700"></i>
+        <h3 class="mt-6 text-xl font-semibold">Offres d'emploi et de stage</h3>
+        <p class="mt-2 text-gray-600 leading-relaxed">Les opportunités partagées par les anciens, avec un contact direct pour postuler.</p>
+        <span class="mt-5 inline-flex text-sm font-semibold text-sky-700 group-hover:underline">Voir les offres</span>
+      </a>
+      <a href="{% url 'events' %}" class="group bg-white p-8 hover:bg-sky-50 transition-colors">
+        <i data-lucide="calendar-days" class="w-7 h-7 text-sky-700"></i>
+        <h3 class="mt-6 text-xl font-semibold">Événements du réseau</h3>
+        <p class="mt-2 text-gray-600 leading-relaxed">Assemblées, rencontres, soirées : consultez le programme et confirmez votre présence.</p>
+        <span class="mt-5 inline-flex text-sm font-semibold text-sky-700 group-hover:underline">Voir le programme</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Mot du fondateur -->
+<section class="bg-gray-50 border-y border-gray-200 py-20 lg:py-24">
+  <div class="container-page grid gap-12 lg:grid-cols-12">
+    <div class="lg:col-span-4">
+      <h2 class="text-3xl font-bold leading-tight">L'esprit de communauté</h2>
+      <figure class="mt-8 card p-6 border-l-4 border-l-sky-500">
+        <blockquote class="text-gray-700 leading-relaxed">
+          « Je tiens à exprimer ma profonde gratitude à tous mes amis et collaborateurs qui ont cru en ce projet dès le premier jour. Votre soutien et vos précieux conseils ont été le moteur de cette aventure. Merci de faire partie de cette famille. »
+        </blockquote>
+      </figure>
+    </div>
+    <div class="lg:col-span-8 space-y-5 text-lg text-gray-700 leading-relaxed max-w-3xl">
+      <p>Le réseau AEPS (Anciens Élèves de la Prépa de San-Pédro) a été créé pour renforcer les liens entre les générations d'étudiants passés par la Prépa. Conscients de l'importance de préserver cet esprit de communauté au-delà du parcours académique, nous avons développé un outil numérique dédié à l'animation du réseau.</p>
+      <p>La plateforme facilite les échanges, le partage d'expériences et la collaboration entre les membres : garder le contact, élargir son réseau professionnel, partager des stages et des emplois, participer aux activités de l'association.</p>
+      <p>Elle est aussi un pont entre les anciens et les étudiants actuellement en formation. En partageant leurs expériences, les alumni peuvent guider les nouvelles promotions dans leurs choix d'études et de carrière.</p>
+      <p class="font-semibold text-gray-950">L'AEPS affirme ainsi sa volonté de bâtir un réseau solidaire et durable, qui valorise les réussites de ses membres et accompagne les générations futures de la Prépa de San-Pédro.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Le campus -->
+<section class="py-20 lg:py-24">
+  <div class="container-page">
+    <h2 class="text-3xl lg:text-4xl font-bold leading-tight max-w-2xl">Là où tout a commencé</h2>
+    <p class="mt-4 text-lg text-gray-600 max-w-2xl">Le campus de la Prépa de San-Pédro, ses infrastructures et sa vie étudiante.</p>
+    <div class="mt-10 grid gap-6 md:grid-cols-2">
+      <figure class="rounded-2xl overflow-hidden border border-gray-200 bg-sky-50">
+        <div class="aspect-[16/10]"><img src="https://sc04.alicdn.com/kf/A3b1d5312ae584258a41d3bc8f2e99285m.jpeg" alt="Bâtiments du campus de San-Pédro" class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"></div>
+        <figcaption class="px-5 py-3 text-sm font-semibold text-gray-700 bg-white border-t border-gray-200">Les infrastructures</figcaption>
+      </figure>
+      <figure class="rounded-2xl overflow-hidden border border-gray-200 bg-sky-50">
+        <div class="aspect-[16/10]"><img src="https://sc04.alicdn.com/kf/A58e9cda3f1f245a89e6a588d688287b81.jpg" alt="Vie étudiante à San-Pédro" class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"></div>
+        <figcaption class="px-5 py-3 text-sm font-semibold text-gray-700 bg-white border-t border-gray-200">La vie étudiante</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+{% if not current_member %}
+<section class="bg-gray-950">
+  <div class="container-page py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+    <div class="max-w-xl">
+      <h2 class="text-3xl font-bold !text-white leading-tight">Vous avez fait la Prépa de San-Pédro ?</h2>
+      <p class="mt-3 text-gray-300 text-lg">Créez votre profil en deux minutes et retrouvez votre promotion.</p>
+    </div>
+    <a href="{% url 'register' %}" class="btn bg-sky-500 text-gray-950 hover:bg-sky-400 px-8 py-3.5 text-base shrink-0">Créer mon profil</a>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

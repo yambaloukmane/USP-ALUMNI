@@ -1,0 +1,12 @@
+# Lancement : docker compose up --build   (le fichier .env est lu automatiquement)
+services:
+  web:
+    build: .
+    env_file: .env
+    environment:
+      DJANGO_DEBUG: "0"
+      REDIS_URL: redis://redis:6379/1
+    ports: ["8000:8000"]
+    depends_on: [redis]
+  redis:
+    image: redis:7-alpine

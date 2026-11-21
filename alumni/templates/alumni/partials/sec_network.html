@@ -1,0 +1,29 @@
+{# Étape « Place dans le réseau » #}
+<div class="space-y-7">
+  <fieldset>
+    <legend class="label">Je peux aider les autres en proposant</legend>
+    <div class="grid gap-2 sm:grid-cols-2">
+      {% for key, label in offer_choices %}<label class="check"><input type="checkbox" name="offers" value="{{ key }}" {% if key in f.offers %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend class="label">Je cherche</legend>
+    <div class="grid gap-2 sm:grid-cols-2">
+      {% for key, label in seek_choices %}<label class="check"><input type="checkbox" name="seeks" value="{{ key }}" {% if key in f.seeks %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
+    </div>
+  </fieldset>
+  {% include "alumni/partials/in.html" with label="Profil LinkedIn" name="linkedin" type="url" value=f.linkedin placeholder="https://www.linkedin.com/in/..." %}
+  <div>
+    <label for="id_bio" class="label">Courte présentation</label>
+    <textarea id="id_bio" name="bio" rows="3" maxlength="{{ bio_max }}" class="input" data-count="{{ bio_max }}" placeholder="Qui êtes-vous, que faites-vous, comment pouvez-vous aider ?">{{ f.bio|default:"" }}</textarea>
+    <p class="hint"><span data-count-out>0</span> / {{ bio_max }} caractères</p>
+  </div>
+  <fieldset>
+    <legend class="label">Dans l'annuaire, les autres membres peuvent voir</legend>
+    <div class="grid gap-2 sm:grid-cols-2">
+      <label class="check"><input type="checkbox" name="show_email" {% if f.show_email %}checked{% endif %}><span>Mon adresse e-mail</span></label>
+      <label class="check"><input type="checkbox" name="show_phone" {% if f.show_phone %}checked{% endif %}><span>Mon numéro de téléphone</span></label>
+    </div>
+    <p class="hint">Par défaut, ces informations restent cachées. Vous pouvez changer ce choix à tout moment dans votre profil.</p>
+  </fieldset>
+</div>

@@ -1,0 +1,9 @@
+Django==5.2.19
+supabase==2.34.1
+httpx==0.28.1
+python-dotenv==1.2.4
+pillow==13.0.0
+whitenoise==6.12.0
+gunicorn==27.0.1
+# Cache partagé entre processus (optionnel : actif seulement si REDIS_URL est défini)
+redis==5.2.1

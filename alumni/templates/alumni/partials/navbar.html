@@ -1,0 +1,67 @@
+{% url 'feed' as u_feed %}{% url 'members' as u_members %}{% url 'events' as u_events %}{% url 'gallery' as u_gallery %}{% url 'messages' as u_messages %}{% url 'treasury' as u_treasury %}
+<header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-200 print:hidden">
+  <nav class="container-page" aria-label="Navigation principale">
+    <div class="flex items-center justify-between h-16">
+      <a href="{% url 'home' %}" class="flex items-center gap-3 shrink-0" title="AEPS-ALUMNI - Accueil">
+        <span class="relative w-10 h-10 rounded-full bg-sky-50 ring-2 ring-sky-500 overflow-hidden flex items-center justify-center text-[11px] font-bold text-sky-700">
+          AE
+          <img src="https://sc04.alicdn.com/kf/A5ab3ad97a8484f7981e0d7642485f16e0.jpg" alt="" class="absolute inset-0 w-full h-full object-contain bg-white" onerror="this.remove()">
+        </span>
+        <span class="font-display font-bold text-gray-950 text-base sm:text-lg tracking-tight">AEPS<span class="text-sky-600">-ALUMNI</span></span>
+      </a>
+
+      {% if current_member %}
+      <ul class="hidden lg:flex items-center gap-1">
+        {% for url, label in nav_links %}
+        <li><a href="{{ url }}" class="px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors {% if request.path == url %}bg-sky-50 text-sky-700{% else %}text-gray-600 hover:text-gray-950 hover:bg-gray-100{% endif %}">{{ label }}</a></li>
+        {% endfor %}
+        <li>
+          <a href="{{ u_messages }}" class="relative px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors inline-flex items-center gap-2 {% if request.path == u_messages %}bg-sky-50 text-sky-700{% else %}text-gray-600 hover:text-gray-950 hover:bg-gray-100{% endif %}">
+            Messages
+            <span id="nav-unread" style="display:none" class="min-w-[18px] h-[18px] px-1 bg-sky-600 text-white text-[11px] font-bold items-center justify-center rounded-full"></span>
+          </a>
+        </li>
+      </ul>
+      {% else %}
+      <ul class="hidden lg:flex items-center gap-1">
+        <li><a href="{% url 'about' %}" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-gray-950 hover:bg-gray-100">À propos</a></li>
+        <li><a href="{% url 'services' %}" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-gray-950 hover:bg-gray-100">Services</a></li>
+        <li><a href="{% url 'contact' %}" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:text-gray-950 hover:bg-gray-100">Contact</a></li>
+      </ul>
+      {% endif %}
+
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        {% if current_member %}
+        <a href="{% url 'profile' %}" class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-gray-200 hover:border-sky-500 transition-colors" title="Mon profil">
+          <span class="relative w-8 h-8 rounded-full bg-sky-50 overflow-hidden flex items-center justify-center text-sky-700 text-xs font-bold">
+            {{ current_member.first_name|slice:":1" }}{{ current_member.last_name|slice:":1" }}
+            <img src="{% url 'avatar' current_member.id %}?v={{ avatar_version }}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+          </span>
+          <span class="hidden sm:inline text-sm font-semibold text-gray-800">{{ current_member.first_name }}</span>
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}" class="hidden sm:inline-flex btn btn-light !py-2">Connexion</a>
+        <a href="{% url 'register' %}" class="btn btn-primary !py-2 !px-3.5 sm:!px-5">Inscription</a>
+        {% endif %}
+        <button type="button" id="nav-toggle" class="lg:hidden p-2 rounded-xl text-gray-700 hover:bg-gray-100" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-panel">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="nav-panel" class="hidden lg:hidden pb-4 border-t border-gray-100">
+      <ul class="pt-3 grid gap-1">
+        {% if current_member %}
+          {% for url, label in nav_links %}<li><a href="{{ url }}" class="block px-3 py-3 rounded-xl font-semibold {% if request.path == url %}bg-sky-50 text-sky-700{% else %}text-gray-700 hover:bg-gray-100{% endif %}">{{ label }}</a></li>{% endfor %}
+          <li><a href="{{ u_messages }}" class="block px-3 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Messages</a></li>
+          <li><a href="{% url 'profile' %}" class="block px-3 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Mon profil</a></li>
+        {% else %}
+          <li><a href="{% url 'about' %}" class="block px-3 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">À propos</a></li>
+          <li><a href="{% url 'services' %}" class="block px-3 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Services</a></li>
+          <li><a href="{% url 'contact' %}" class="block px-3 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Contact</a></li>
+          <li><a href="{% url 'login' %}" class="block px-3 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Connexion</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+</header>

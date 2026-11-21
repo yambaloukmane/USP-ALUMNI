@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+extend-exclude = ["alumni/migrations", "staticfiles"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S"]
+ignore = ["E501", "S101", "S311", "B904", "UP017"]
+
+[tool.ruff.lint.per-file-ignores]
+"alumni/tests/*" = ["S"]
+"alumni/management/*" = ["S"]

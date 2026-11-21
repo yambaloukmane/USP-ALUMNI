@@ -1,0 +1,82 @@
+{% extends "alumni/base.html" %}
+{% block title %}Inscription - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<noscript><style>[data-step]{display:block !important}[data-step]+[data-step]{margin-top:2rem}#btn-next{display:none}#btn-submit{display:inline-flex !important}</style></noscript>
+<div class="bg-gray-50 px-4 py-10 lg:py-14">
+  <div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold">Rejoignez AEPS-ALUMNI</h1>
+      <p class="mt-2 text-gray-600">4 étapes, environ 3 minutes. Les champs marqués d'une étoile sont obligatoires.</p>
+    </div>
+
+    <ol id="stepper" class="grid grid-cols-4 gap-2 mb-6 text-sm font-semibold" aria-label="Progression">
+      {% for n, name in steps %}
+      <li data-step-tab="{{ n }}" class="border-t-4 border-gray-200 pt-2 text-gray-400"><span class="block text-xs font-medium">Étape {{ n }}</span>{{ name }}</li>
+      {% endfor %}
+    </ol>
+
+    {% if error %}<div role="alert" class="mb-5 bg-red-50 text-red-700 p-4 rounded-xl text-sm font-semibold border border-red-100">{{ error }}</div>{% endif %}
+
+    <form method="post" id="register-form" class="card p-6 sm:p-8" data-error-step="{{ error_step }}" novalidate>
+      {% csrf_token %}
+
+      <section data-step="1">
+        <h2 class="text-xl font-semibold mb-1">Votre compte</h2>
+        <p class="text-gray-600 mb-6">Votre adresse e-mail recevra le code de confirmation.</p>
+        <div class="grid gap-5 sm:grid-cols-2">
+          {% include "alumni/partials/in.html" with label="Prénom" name="first_name" value=f.first_name required=True autocomplete="given-name" maxlength="80" %}
+          {% include "alumni/partials/in.html" with label="Nom" name="last_name" value=f.last_name required=True autocomplete="family-name" maxlength="80" %}
+          <div class="sm:col-span-2">{% include "alumni/partials/in.html" with label="Adresse e-mail" name="email" type="email" value=f.email required=True autocomplete="email" placeholder="vous@exemple.com" %}</div>
+          <div>
+            {% include "alumni/partials/in.html" with label="Téléphone" name="phone" type="tel" value=f.phone required=True autocomplete="tel" placeholder="+225 07 00 00 00 00" %}
+            <label class="mt-2 flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="phone_whatsapp" {% if f.phone_whatsapp %}checked{% endif %} class="w-4 h-4 accent-sky-600"> C'est mon numéro WhatsApp</label>
+          </div>
+          <div>
+            <label for="id_password" class="label">Mot de passe <span class="text-red-600" aria-hidden="true">*</span></label>
+            <input id="id_password" name="password" type="password" class="input" required minlength="{{ password_min }}" autocomplete="new-password">
+            <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div id="pw-bar" class="h-full w-0 bg-red-500 transition-all"></div></div>
+            <p class="hint"><span id="pw-text">{{ password_min }} caractères minimum.</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section data-step="2" class="hidden">
+        <h2 class="text-xl font-semibold mb-1">Votre passage à la Prépa</h2>
+        <p class="text-gray-600 mb-6">Ces informations permettent de retrouver votre promotion.</p>
+        {% include "alumni/partials/sec_prepa.html" %}
+        <div class="mt-5">
+          {% include "alumni/partials/in.html" with label="Qui peut confirmer votre inscription ?" name="referent" value=f.referent maxlength="120" placeholder="Nom d'un camarade ou d'un professeur" hint="Un camarade ou un professeur de la Prépa. Les responsables s'en servent pour valider rapidement votre compte." %}
+        </div>
+      </section>
+
+      <section data-step="3" class="hidden">
+        <h2 class="text-xl font-semibold mb-1">Votre situation actuelle</h2>
+        <p class="text-gray-600 mb-6">Pour que les anciens sachent où vous êtes et ce que vous faites.</p>
+        {% include "alumni/partials/sec_situation.html" with registering=True %}
+      </section>
+
+      <section data-step="4" class="hidden">
+        <h2 class="text-xl font-semibold mb-1">Votre place dans le réseau</h2>
+        <p class="text-gray-600 mb-6">Tout est facultatif sauf l'acceptation des conditions. Vous pourrez ajouter votre photo depuis votre profil.</p>
+        {% include "alumni/partials/sec_network.html" %}
+        <label class="check mt-7"><input type="checkbox" name="terms" id="terms"><span>J'accepte les conditions d'utilisation du réseau et le traitement de mes informations pour l'annuaire. <span class="text-red-600">*</span></span></label>
+      </section>
+
+      <div class="mt-8 flex items-center justify-between gap-3">
+        <button type="button" id="btn-prev" class="btn btn-light invisible">Retour</button>
+        <button type="button" id="btn-next" class="btn btn-primary">Continuer</button>
+        <button type="submit" id="btn-submit" class="btn btn-primary hidden">Recevoir mon code de confirmation</button>
+      </div>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-600">Déjà inscrit ? <a href="{% url 'login' %}" class="font-semibold text-sky-700 hover:underline">Se connecter</a></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'alumni/js/profile_form.js' %}?v={{ asset_v }}"></script>
+<script src="{% static 'alumni/js/register.js' %}?v={{ asset_v }}"></script>
+{% endblock %}

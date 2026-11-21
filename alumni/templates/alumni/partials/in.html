@@ -1,0 +1,9 @@
+{# Champ texte. Paramètres : label, name, type, value, placeholder, required, hint, list, maxlength, autocomplete #}
+<div>
+  <label for="id_{{ name }}" class="label">{{ label }}{% if required %} <span class="text-red-600" aria-hidden="true">*</span>{% endif %}</label>
+  <input id="id_{{ name }}" name="{{ name }}" type="{{ type|default:'text' }}" value="{{ value|default:'' }}" class="input"
+         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %} {% if required %}required{% endif %}
+         {% if list %}list="{{ list }}"{% endif %} {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+         {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}>
+  {% if hint %}<p class="hint">{{ hint }}</p>{% endif %}
+</div>

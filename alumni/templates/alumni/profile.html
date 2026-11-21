@@ -1,0 +1,83 @@
+{% extends "alumni/base.html" %}
+{% block title %}Mon profil - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12">
+  <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+    <!-- En-tête -->
+    <div class="bg-sky-700 p-10 text-white relative">
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <div class="relative">
+          <div class="relative w-32 h-32 bg-white rounded-3xl flex items-center justify-center shadow-sm overflow-hidden border-4 border-white/30 p-1">
+            <i data-lucide="user" class="w-14 h-14 text-sky-200"></i>
+            <img src="{% url 'avatar' member.id %}?v={{ avatar_version }}" alt="Avatar" class="absolute inset-1 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] object-cover rounded-2xl" onerror="this.remove()">
+          </div>
+          <form method="post" action="{% url 'profile_avatar' %}" enctype="multipart/form-data" id="avatar-form">
+            {% csrf_token %}
+            <label class="absolute -bottom-2 -right-2 bg-white text-sky-700 p-2.5 rounded-2xl shadow-sm transition- active:scale-95 cursor-pointer" title="Changer la photo">
+              <i data-lucide="camera" class="w-5 h-5"></i>
+              <input type="file" name="avatar" class="hidden" accept="image/*" onchange="document.getElementById('avatar-form').submit()">
+            </label>
+          </form>
+        </div>
+        <div class="text-center md:text-left space-y-2">
+          <h1 class="text-4xl font-semibold tracking-tight">{{ member.first_name }} {{ member.last_name }}</h1>
+          <div class="flex flex-wrap justify-center md:justify-start gap-3">
+            <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-sm font-bold border border-white/20">Promo {{ member.promo }}</span>
+            <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-sm font-bold border border-white/20">{{ member.email }}</span>
+          </div>
+        </div>
+        <form method="post" action="{% url 'logout' %}" class="md:ml-auto">
+          {% csrf_token %}
+          <button type="submit" class="flex items-center gap-2 bg-white text-sky-700 hover:bg-sky-50 px-6 py-3 rounded-2xl font-semibold transition-all text-sm shadow-sm active:scale-95">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+            Se déconnecter
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="p-6 md:p-10">
+      <form method="post" class="space-y-10">
+        {% csrf_token %}
+        <section>
+          <h2 class="text-xl font-semibold mb-1">Coordonnées</h2>
+          <p class="text-gray-600 mb-5">Votre adresse e-mail ({{ member.email }}) ne peut pas être modifiée ici.</p>
+          <div class="grid gap-5 sm:grid-cols-2">
+            {% include "alumni/partials/in.html" with label="Prénom" name="first_name" value=f.first_name required=True maxlength="80" %}
+            {% include "alumni/partials/in.html" with label="Nom" name="last_name" value=f.last_name required=True maxlength="80" %}
+            <div>
+              {% include "alumni/partials/in.html" with label="Téléphone" name="phone" type="tel" value=f.phone placeholder="+225 07 00 00 00 00" %}
+              <label class="mt-2 flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="phone_whatsapp" {% if f.phone_whatsapp %}checked{% endif %} class="w-4 h-4 accent-sky-600"> C'est mon numéro WhatsApp</label>
+            </div>
+          </div>
+        </section>
+
+        <section class="pt-8 border-t border-gray-200">
+          <h2 class="text-xl font-semibold mb-5">Passage à la Prépa</h2>
+          {% include "alumni/partials/sec_prepa.html" %}
+        </section>
+
+        <section class="pt-8 border-t border-gray-200">
+          <h2 class="text-xl font-semibold mb-5">Situation actuelle</h2>
+          {% include "alumni/partials/sec_situation.html" with registering=False %}
+        </section>
+
+        <section class="pt-8 border-t border-gray-200">
+          <h2 class="text-xl font-semibold mb-5">Place dans le réseau</h2>
+          {% include "alumni/partials/sec_network.html" %}
+        </section>
+
+        <div class="pt-6 border-t border-gray-200">
+          <button type="submit" class="btn btn-primary px-8 py-3.5">Enregistrer les modifications</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'alumni/js/profile_form.js' %}?v={{ asset_v }}"></script>
+{% endblock %}

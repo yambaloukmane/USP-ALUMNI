@@ -1,0 +1,27 @@
+{# Étape « Situation actuelle » #}
+<div class="grid gap-5 sm:grid-cols-2">
+  <div class="sm:col-span-2">
+    <label for="id_situation" class="label">Situation actuelle{% if registering %} <span class="text-red-600" aria-hidden="true">*</span>{% endif %}</label>
+    <select id="id_situation" name="situation" class="input" {% if registering %}required{% endif %}>
+      <option value="">Choisir</option>
+      {% for s in situations %}<option value="{{ s }}" {% if f.situation == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+  </div>
+  {% include "alumni/partials/in.html" with label="Poste occupé ou diplôme préparé" name="job" value=f.job maxlength="120" placeholder="Ingénieur développeur, Master en énergie..." %}
+  {% include "alumni/partials/in.html" with label="Entreprise ou école" name="company" value=f.company maxlength="120" %}
+  <div>
+    <label for="id_sector" class="label">Secteur d'activité</label>
+    <select id="id_sector" name="sector" class="input">
+      <option value="">Choisir</option>
+      {% for s in sectors %}<option value="{{ s }}" {% if f.sector == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="id_country" class="label">Pays de résidence{% if registering %} <span class="text-red-600" aria-hidden="true">*</span>{% endif %}</label>
+    <select id="id_country" name="country" class="input" {% if registering %}required{% endif %}>
+      <option value="">Choisir</option>
+      {% for c in countries %}<option value="{{ c }}" {% if f.country == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  {% include "alumni/partials/in.html" with label="Ville" name="city" value=f.city maxlength="80" autocomplete="address-level2" %}
+</div>

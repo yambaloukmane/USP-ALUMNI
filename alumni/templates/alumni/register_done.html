@@ -1,0 +1,34 @@
+{% extends "alumni/base.html" %}
+{% block title %}Bienvenue - AEPS-ALUMNI{% endblock %}
+
+{% block extra_head %}{% if not pending %}<meta http-equiv="refresh" content="3;url={% url 'home' %}">{% endif %}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center bg-gray-50 px-4 py-12">
+  <div class="max-w-2xl w-full bg-white p-10 rounded-2xl shadow-md border border-gray-100">
+    {% if pending %}
+    <div class="py-12 text-center space-y-6">
+      <div class="w-24 h-24 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto"><i data-lucide="clock" class="w-12 h-12"></i></div>
+      <h2 class="text-3xl font-semibold text-black tracking-tight">Inscription reçue</h2>
+      <p class="text-gray-500 font-bold leading-relaxed">Votre adresse est confirmée. Un responsable doit maintenant valider votre inscription ; vous recevrez un e-mail dès que ce sera fait.</p>
+      <a href="{% url 'home' %}" class="inline-block px-8 py-4 bg-gray-900 text-white font-semibold rounded-2xl">Retour à l'accueil</a>
+    </div>
+    {% else %}
+    <div class="py-12 text-center">
+      <div class="w-24 h-24 bg-emerald-500 text-white rounded-2xl flex items-center justify-center mx-auto shadow-md mb-8 animate-bounce">
+        <i data-lucide="check-circle" class="w-12 h-12"></i>
+      </div>
+      <h2 class="text-3xl font-semibold text-black mb-4 tracking-tight">Félicitations !</h2>
+      <p class="text-gray-500 font-bold mb-8 leading-relaxed">
+        Votre compte <span class="text-sky-700">AEPS-ALUMNI</span> a été créé avec succès.<br>
+        Bienvenue dans le réseau des anciens élèves !
+      </p>
+      <div class="flex items-center justify-center gap-3 text-emerald-600 font-semibold text-sm tracking-wide bg-emerald-50 py-3 rounded-2xl">
+        <div class="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        Redirection automatique...
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

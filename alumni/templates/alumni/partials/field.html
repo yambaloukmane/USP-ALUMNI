@@ -1,0 +1,12 @@
+{# Champ de formulaire avec icône. Paramètres : label, name, icon, type, value, placeholder, required #}
+<div>
+  <label for="id_{{ name }}" class="block text-sm font-semibold text-black mb-2 ml-1">{{ label }}</label>
+  <div class="relative group">
+    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-sky-500 transition-colors">
+      <i data-lucide="{{ icon }}" class="w-[18px] h-[18px]"></i>
+    </div>
+    <input id="id_{{ name }}" name="{{ name }}" type="{{ type|default:'text' }}" value="{{ value|default:'' }}"
+           placeholder="{{ placeholder|default:'' }}" {% if required %}required{% endif %}
+           class="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 outline-none transition-all font-bold text-black placeholder-gray-400">
+  </div>
+</div>

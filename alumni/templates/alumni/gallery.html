@@ -1,0 +1,69 @@
+{% extends "alumni/base.html" %}
+{% block title %}Galerie - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+  <div class="text-center space-y-2">
+    <h1 class="text-4xl lg:text-5xl font-semibold text-gray-900 tracking-tight">Galerie photos</h1>
+    <p class="text-gray-500 font-medium">Les souvenirs du réseau. Ajoutez vos photos d'événements et de retrouvailles.</p>
+  </div>
+
+  <details class="max-w-2xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+    <summary class="cursor-pointer font-semibold text-sky-700 flex items-center gap-2"><i data-lucide="upload" class="w-5 h-5"></i> Ajouter des photos</summary>
+    <form method="post" action="{% url 'gallery_upload' %}" enctype="multipart/form-data" class="mt-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label for="g-photos" class="block text-sm font-semibold text-gray-700 mb-1">Photos (10 maximum, 8 Mo chacune)</label>
+        <input id="g-photos" type="file" name="photos" accept="image/*" multiple required class="w-full text-sm">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="g-album" class="block text-sm font-semibold text-gray-700 mb-1">Album</label>
+          <input id="g-album" name="album" list="albums" maxlength="60" placeholder="Général" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+          <datalist id="albums">{% for a in albums %}<option value="{{ a }}">{% endfor %}</datalist>
+        </div>
+        <div>
+          <label for="g-title" class="block text-sm font-semibold text-gray-700 mb-1">Légende (optionnel)</label>
+          <input id="g-title" name="title" maxlength="120" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+        </div>
+      </div>
+      <button type="submit" class="px-6 py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700">Envoyer</button>
+    </form>
+  </details>
+
+  {% if albums %}
+  <div class="flex flex-wrap justify-center gap-2">
+    <a href="{% url 'gallery' %}" class="px-4 py-2 rounded-full text-sm font-semibold {% if not album %}bg-sky-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">Tout</a>
+    {% for a in albums %}<a href="?album={{ a|urlencode }}" class="px-4 py-2 rounded-full text-sm font-semibold {% if a == album %}bg-sky-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{{ a }}</a>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if page.object_list %}
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {% for p in page.object_list %}
+    <figure class="relative group rounded-2xl overflow-hidden bg-gray-100 aspect-square">
+      <a href="{{ p.url }}" target="_blank" rel="noopener"><img src="{{ p.url }}" alt="{{ p.title|default:p.album }}" loading="lazy" class="w-full h-full object-cover transition- duration-500"></a>
+      {% if p.title %}<figcaption class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent text-white text-xs font-bold p-3">{{ p.title }}</figcaption>{% endif %}
+      {% if p.can_delete %}
+      <form method="post" action="{% url 'gallery_delete' p.id %}" data-confirm="Supprimer cette photo ?" class="absolute top-2 right-2">
+        {% csrf_token %}
+        <button type="submit" aria-label="Supprimer" class="w-8 h-8 bg-white/90 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-full flex items-center justify-center shadow"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      </form>
+      {% endif %}
+    </figure>
+    {% endfor %}
+  </div>
+  {% include "alumni/partials/pagination.html" %}
+  {% else %}
+  <div class="text-center py-20 bg-gray-50 rounded-3xl border-4 border-dashed border-gray-100 text-gray-400 font-bold">Aucune photo pour le moment. Soyez le premier à en ajouter !</div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll("form[data-confirm]").forEach(function (f) {
+  f.addEventListener("submit", function (e) { if (!window.confirm(f.dataset.confirm)) e.preventDefault(); });
+});
+</script>
+{% endblock %}

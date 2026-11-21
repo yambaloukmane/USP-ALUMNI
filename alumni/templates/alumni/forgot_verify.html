@@ -1,0 +1,26 @@
+{% extends "alumni/base.html" %}
+{% block title %}Nouveau mot de passe - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center bg-gray-50 px-4 py-12">
+  <div class="max-w-md w-full bg-white p-10 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl font-semibold text-gray-900">Choisissez un nouveau mot de passe</h2>
+      <p class="text-sm text-gray-500 font-medium">Si un compte existe pour <span class="font-semibold text-sky-700">{{ email }}</span>, un code vient d'y être envoyé.</p>
+    </div>
+    {% if error %}<div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm font-bold">{{ error }}</div>{% endif %}
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label for="id_code" class="block text-sm font-semibold text-black mb-2 ml-1">Code reçu par e-mail</label>
+        <input id="id_code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required autofocus placeholder="000000"
+               class="w-full text-center text-2xl font-semibold tracking-[0.5rem] py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 outline-none">
+      </div>
+      {% include "alumni/partials/field.html" with label="Nouveau mot de passe" name="password" icon="lock" type="password" required=True %}
+      {% include "alumni/partials/field.html" with label="Confirmer le mot de passe" name="confirm" icon="lock" type="password" required=True %}
+      <button type="submit" class="w-full py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700 transition-all">Modifier le mot de passe</button>
+    </form>
+    <p class="text-center"><a href="{% url 'forgot' %}" class="text-sm font-bold text-gray-400 hover:text-gray-600">Renvoyer un code</a></p>
+  </div>
+</div>
+{% endblock %}

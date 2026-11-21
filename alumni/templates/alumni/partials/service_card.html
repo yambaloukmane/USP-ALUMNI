@@ -1,0 +1,10 @@
+{# Paramètres : url (nom d'URL Django), icon, title, desc #}
+<a href="{% url url %}" class="p-12 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-sky-500 transition-all group relative overflow-hidden">
+  <div class="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full -mr-16 -mt-16 transition-"></div>
+  <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mb-8 text-sky-700 group-hover:bg-sky-500 group-hover:text-white transition-all relative z-10">
+    <i data-lucide="{{ icon }}" class="w-6 h-6"></i>
+  </div>
+  <h3 class="text-2xl font-semibold mb-4 relative z-10 text-gray-900 group-hover:text-sky-500 transition-colors">{{ title }}</h3>
+  <p class="text-gray-500 font-medium leading-relaxed mb-6 relative z-10">{{ desc }}</p>
+  <div class="w-12 h-1 bg-gray-100 group-hover:w-full group-hover:bg-sky-500 transition-all duration-500 rounded-full relative z-10"></div>
+</a>

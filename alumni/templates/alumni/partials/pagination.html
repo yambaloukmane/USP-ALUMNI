@@ -1,0 +1,8 @@
+{# Paramètres : page (objet Page), query (filtres déjà encodés, sans "page") #}
+{% if page.paginator.num_pages > 1 %}
+<nav class="flex items-center justify-center gap-3 pt-6" aria-label="Pagination">
+  {% if page.has_previous %}<a href="?{% if query %}{{ query }}&{% endif %}page={{ page.previous_page_number }}" class="px-5 py-3 bg-white border border-gray-200 rounded-2xl font-semibold text-gray-700 hover:bg-gray-50">← Précédent</a>{% endif %}
+  <span class="text-sm font-semibold text-gray-400">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?{% if query %}{{ query }}&{% endif %}page={{ page.next_page_number }}" class="px-5 py-3 bg-white border border-gray-200 rounded-2xl font-semibold text-gray-700 hover:bg-gray-50">Suivant →</a>{% endif %}
+</nav>
+{% endif %}

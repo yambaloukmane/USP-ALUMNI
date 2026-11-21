@@ -1,0 +1,206 @@
+{% extends "alumni/base.html" %}
+{% block title %}Annuaire des membres - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="container-page py-10 lg:py-14">
+  <div class="mb-8">
+    <h1 class="text-3xl lg:text-4xl font-bold">Annuaire des membres</h1>
+    <p class="mt-2 text-gray-600 text-lg">{{ total_all }} ancien{{ total_all|pluralize }} inscrit{{ total_all|pluralize }}. Retrouvez une promotion, un métier ou une ville.</p>
+  </div>
+
+  <form method="get" class="mb-8 space-y-4">
+    <div class="flex flex-wrap sm:flex-nowrap gap-3">
+      <div class="relative flex-grow group w-full sm:w-auto">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-sky-500 transition-colors"><i data-lucide="search" class="w-[22px] h-[22px]"></i></div>
+        <input name="q" value="{{ filters.q }}" type="text" placeholder="Rechercher par nom, ville, métier..." aria-label="Rechercher"
+               class="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 bg-white shadow-sm transition-all font-medium outline-none">
+      </div>
+      <button type="button" id="toggle-filters" class="px-6 py-4 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-sm border bg-white text-gray-700 border-gray-200 hover:bg-gray-50">
+        <i data-lucide="filter" class="w-5 h-5"></i><span class="hidden sm:inline">Filtres</span>
+      </button>
+      <button type="submit" class="px-6 py-4 bg-sky-600 text-white rounded-2xl font-semibold hover:bg-sky-700 shadow-sm">Rechercher</button>
+    </div>
+
+    <div id="filters" class="{% if not filters_active %}hidden{% endif %} bg-white p-8 rounded-3xl border border-gray-100 shadow-md">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
+          <label for="f-promo" class="block text-sm font-semibold text-gray-700 mb-2">Promotion</label>
+          <select id="f-promo" name="promo" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 font-medium">
+            <option value="">Toutes les promos</option>
+            {% for p in promos %}<option value="{{ p }}" {% if filters.promo == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="f-sector" class="block text-sm font-semibold text-gray-700 mb-2">Secteur</label>
+          <input id="f-sector" name="sector" value="{{ filters.sector }}" type="text" placeholder="Ex: Informatique" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 font-medium">
+        </div>
+        <div>
+          <label for="f-country" class="block text-sm font-semibold text-gray-700 mb-2">Pays</label>
+          <input id="f-country" name="country" value="{{ filters.country }}" type="text" placeholder="Ex: France" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 font-medium">
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+        <div>
+          <label for="f-school" class="block text-sm font-semibold text-gray-700 mb-2">École intégrée</label>
+          <select id="f-school" name="school" class="input"><option value="">Toutes les écoles</option>{% for s in schools %}<option value="{{ s }}" {% if filters.school == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+        </div>
+        <div>
+          <label for="f-situation" class="block text-sm font-semibold text-gray-700 mb-2">Situation</label>
+          <select id="f-situation" name="situation" class="input"><option value="">Toutes</option>{% for s in situations %}<option value="{{ s }}" {% if filters.situation == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+        </div>
+      </div>
+      <label class="mt-6 flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" name="mentor" value="1" {% if filters.mentor %}checked{% endif %} class="h-5 w-5 text-sky-700 rounded">
+        <span class="font-bold text-gray-700">Afficher uniquement les mentors</span>
+      </label>
+      <div class="mt-6 flex justify-end">
+        <a href="{% url 'members' %}" class="text-sm font-bold text-sky-700 hover:text-sky-700 flex items-center gap-1"><i data-lucide="x" class="w-4 h-4"></i> Réinitialiser les filtres</a>
+      </div>
+    </div>
+  </form>
+
+  {% if filters_active %}<p class="text-center text-sm font-semibold text-gray-400 mb-8">{{ total }} résultat{{ total|pluralize }}</p>{% endif %}
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+    {% for m in page.object_list %}
+    <div class="member-card card relative flex flex-col overflow-hidden hover:border-sky-500 transition-colors"
+         data-id="{{ m.id }}" data-first="{{ m.first_name }}" data-last="{{ m.last_name }}" data-promo="{{ m.promo|default:'' }}"
+         data-job="{{ m.job|default:'' }}" data-sector="{{ m.sector|default:'' }}" data-city="{{ m.city|default:'' }}"
+         data-country="{{ m.country|default:'' }}" data-bio="{{ m.bio|default:'' }}" data-linkedin="{{ m.linkedin|default:'' }}"
+         data-mentor="{% if m.is_mentor %}1{% endif %}" data-situation="{{ m.situation|default:'' }}" data-company="{{ m.company|default:'' }}"
+         data-school="{{ m.school|default:'' }}" data-school-track="{{ m.school_track|default:'' }}" data-track="{{ m.track|default:'' }}"
+         data-entry="{{ m.entry_year|default:'' }}" data-offers="{{ m.offers_text }}" data-seeks="{{ m.seeks_text }}"
+         data-email="{{ m.contact_email }}" data-phone="{{ m.contact_phone }}" data-whatsapp="{% if m.whatsapp %}1{% endif %}">
+      {% if m.is_mentor %}<span class="absolute top-4 right-4 bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">Mentor</span>{% endif %}
+      <div class="p-6 flex-grow">
+        <div class="flex items-center gap-4">
+          <div class="relative w-14 h-14 shrink-0 rounded-full bg-sky-50 text-sky-700 overflow-hidden flex items-center justify-center font-display font-semibold">
+            {{ m.first_name|slice:":1" }}{{ m.last_name|slice:":1" }}
+            <img src="{% url 'avatar' m.id %}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+          </div>
+          <div class="min-w-0">
+            <h3 class="font-semibold text-gray-950 leading-snug truncate">{{ m.first_name }} {{ m.last_name }}</h3>
+            <p class="text-sm font-semibold text-sky-700">Promotion {{ m.promo }}</p>
+          </div>
+        </div>
+        <dl class="mt-5 space-y-2 text-sm text-gray-600">
+          {% if m.job or m.company %}<div class="flex items-center gap-2.5"><i data-lucide="briefcase" class="w-4 h-4 text-gray-400 shrink-0"></i><dd class="truncate">{% if m.job %}{{ m.job }}{% else %}{{ m.situation }}{% endif %}{% if m.job and m.company %} · {{ m.company }}{% endif %}</dd></div>{% endif %}
+          {% if m.school %}<div class="flex items-center gap-2.5"><i data-lucide="graduation-cap" class="w-4 h-4 text-gray-400 shrink-0"></i><dd class="truncate">{{ m.school }}</dd></div>{% endif %}
+          {% if m.city or m.country %}<div class="flex items-center gap-2.5"><i data-lucide="map-pin" class="w-4 h-4 text-gray-400 shrink-0"></i><dd class="truncate">{{ m.city|default:"" }}{% if m.city and m.country %}, {% endif %}{{ m.country|default:"" }}</dd></div>{% endif %}
+        </dl>
+        {% if m.bio %}<p class="mt-4 text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ m.bio }}</p>{% endif %}
+      </div>
+      <div class="px-6 py-4 border-t border-gray-200 mt-auto">
+        <button type="button" class="open-profile btn btn-light w-full !py-2.5 text-sm">Voir le profil complet</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if not page.object_list %}
+  <div class="text-center py-32 bg-gray-50 rounded-3xl border-4 border-dashed border-gray-100">
+    <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm text-gray-300"><i data-lucide="search" class="w-10 h-10"></i></div>
+    <h3 class="text-2xl font-semibold text-gray-900 mb-2">Aucun résultat</h3>
+    <p class="text-gray-500 font-medium">Réessayez avec d'autres critères de recherche.</p>
+  </div>
+  {% endif %}
+
+  {% include "alumni/partials/pagination.html" %}
+</div>
+
+<!-- Profil complet -->
+<div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-gray-900/60 backdrop-blur-sm">
+  <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-md overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div class="h-32 bg-sky-700 relative">
+      <button type="button" id="modal-x" aria-label="Fermer" class="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur rounded-full flex items-center justify-center text-white transition-all"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="px-8 -mt-14 relative">
+      <div class="w-28 h-28 bg-sky-50 rounded-3xl p-1.5 shadow-sm ring-4 ring-white relative overflow-hidden flex items-center justify-center text-sky-700">
+        <i data-lucide="user" class="w-12 h-12"></i>
+        <img id="m-avatar" src="" alt="" class="absolute inset-1.5 w-[calc(100%-0.75rem)] h-[calc(100%-0.75rem)] object-cover rounded-2xl hidden">
+      </div>
+    </div>
+    <div class="px-8 py-6 space-y-6">
+      <div>
+        <h3 id="m-name" class="text-3xl font-semibold text-gray-900 tracking-tight"></h3>
+        <p id="m-promo" class="text-sky-700 font-semibold text-sm mt-1"></p>
+        <span id="m-mentor" class="hidden inline-block mt-2 bg-amber-400 text-white text-xs font-semibold tracking-wide px-3 py-1 rounded-full">Mentor</span>
+      </div>
+      <dl id="m-info" class="bg-gray-50 rounded-2xl p-5 space-y-3 text-sm"></dl>
+      <div id="m-contact" class="hidden flex flex-wrap gap-2"></div>
+      <div id="m-bio-row">
+        <h4 class="text-sm font-semibold text-gray-400 tracking-wider mb-3">À propos</h4>
+        <p id="m-bio" class="text-gray-600 font-medium leading-relaxed bg-sky-50/50 rounded-2xl p-5 border border-sky-100"></p>
+      </div>
+      <div class="flex gap-3">
+        <a id="m-linkedin" href="#" target="_blank" rel="noopener noreferrer" class="hidden flex-1 text-center py-4 bg-[#0a66c2] text-white rounded-2xl font-semibold hover:opacity-90 transition-all">LinkedIn</a>
+        <button type="button" id="modal-close" class="flex-1 py-4 bg-sky-600 text-white rounded-2xl font-semibold hover:bg-sky-700 transition-all active:scale-95 shadow-sm">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var filters = document.getElementById("filters"), toggle = document.getElementById("toggle-filters");
+  toggle.addEventListener("click", function () { filters.classList.toggle("hidden"); });
+
+  var modal = document.getElementById("modal");
+  function closeModal() { modal.classList.add("hidden"); }
+  function row(id, value) { document.getElementById(id + "-row").classList.toggle("hidden", !value); }
+  var avatarBase = "{% url 'avatar' 'MEMBER_ID' %}";
+
+  document.querySelectorAll(".member-card").forEach(function (c) {
+    c.querySelector(".open-profile").addEventListener("click", function () {
+      var d = c.dataset;
+      document.getElementById("m-name").textContent = d.first + " " + d.last;
+      document.getElementById("m-promo").textContent = "Promotion " + d.promo;
+      var info = document.getElementById("m-info");
+      info.textContent = "";
+      var place = [d.city, d.country].filter(Boolean).join(", ");
+      var school = [d.school, d.schoolTrack].filter(Boolean).join(" - ");
+      [["Situation", d.situation], ["Poste ou diplôme", d.job], ["Entreprise ou école", d.company], ["Secteur", d.sector],
+       ["École intégrée", school], ["Filière à la Prépa", d.track], ["Entrée à la Prépa", d.entry], ["Localisation", place],
+       ["Propose", d.offers], ["Cherche", d.seeks]].forEach(function (r) {
+        if (!r[1]) return;
+        var row = document.createElement("div"), dt = document.createElement("dt"), dd = document.createElement("dd");
+        dt.className = "text-xs font-semibold text-gray-500"; dd.className = "font-semibold text-gray-900";
+        dt.textContent = r[0]; dd.textContent = r[1]; row.appendChild(dt); row.appendChild(dd); info.appendChild(row);
+      });
+      info.classList.toggle("hidden", !info.children.length);
+      var contact = document.getElementById("m-contact");
+      contact.textContent = "";
+      function addLink(label, href) {
+        var a = document.createElement("a"); a.href = href; a.textContent = label; a.rel = "noopener noreferrer";
+        a.className = "btn btn-light !py-2 text-sm"; contact.appendChild(a);
+      }
+      if (d.email) addLink(d.email, "mailto:" + d.email);
+      if (d.phone) {
+        addLink(d.phone, "tel:" + d.phone.replace(/[^+\d]/g, ""));
+        if (d.whatsapp) addLink("WhatsApp", "https://wa.me/" + d.phone.replace(/\D/g, ""));
+      }
+      contact.classList.toggle("hidden", !contact.children.length);
+      document.getElementById("m-bio").textContent = d.bio ? '"' + d.bio + '"' : "";
+      row("m-bio", d.bio);
+      document.getElementById("m-mentor").classList.toggle("hidden", !d.mentor);
+      var li = document.getElementById("m-linkedin");
+      var ok = d.linkedin && d.linkedin.indexOf("https://") === 0;
+      li.classList.toggle("hidden", !ok);
+      if (ok) li.href = d.linkedin;
+      var img = document.getElementById("m-avatar");
+      img.classList.add("hidden");
+      img.onload = function () { img.classList.remove("hidden"); };
+      img.onerror = function () { img.classList.add("hidden"); };
+      img.src = avatarBase.replace("MEMBER_ID", encodeURIComponent(d.id));
+      modal.classList.remove("hidden");
+    });
+  });
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+  document.getElementById("modal-x").addEventListener("click", closeModal);
+  modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
+})();
+</script>
+{% endblock %}

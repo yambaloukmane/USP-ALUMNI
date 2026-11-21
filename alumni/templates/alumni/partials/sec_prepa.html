@@ -1,0 +1,23 @@
+{# Étape « Passage à la Prépa » : f = valeurs du formulaire #}
+<div class="grid gap-5 sm:grid-cols-2">
+  {% include "alumni/partials/in.html" with label="Promotion (année de sortie)" name="promo" type="number" value=f.promo placeholder="2020" required=True hint="Année où vous avez quitté la Prépa." %}
+  {% include "alumni/partials/in.html" with label="Année d'entrée à la Prépa" name="entry_year" type="number" value=f.entry_year placeholder="2018" %}
+  <div>
+    <label for="id_track" class="label">Filière ou série</label>
+    <input id="id_track" name="track" value="{{ f.track|default:'' }}" class="input" list="tracks" maxlength="80" placeholder="Ex : Physique-Chimie">
+    <datalist id="tracks">{% for t in track_suggestions %}<option value="{{ t }}">{% endfor %}</datalist>
+  </div>
+  <div>
+    <label for="id_school" class="label">École intégrée après la Prépa</label>
+    <select id="id_school" name="school" class="input" data-school>
+      <option value="">Choisir</option>
+      {% for s in schools %}<option value="{{ s }}" {% if f.school == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+  </div>
+  <div data-school-other class="sm:col-span-2 {% if f.school != school_other_label %}hidden{% endif %}">
+    {% include "alumni/partials/in.html" with label="Nom de l'école" name="school_other" value=f.school_other maxlength="100" placeholder="Nom de votre école" %}
+  </div>
+  <div data-school-track class="sm:col-span-2 {% if f.school == school_none_label or not f.school %}hidden{% endif %}">
+    {% include "alumni/partials/in.html" with label="Filière à l'école" name="school_track" value=f.school_track maxlength="100" placeholder="Ex : Génie électrique et électronique" %}
+  </div>
+</div>

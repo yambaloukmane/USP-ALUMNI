@@ -1,0 +1,32 @@
+<footer class="bg-gray-950 text-gray-300 print:hidden">
+  <div class="h-1 bg-sky-500"></div>
+  <div class="container-page py-14">
+    <div class="grid gap-10 md:grid-cols-12">
+      <div class="md:col-span-5">
+        <p class="font-display font-bold text-white text-xl tracking-tight">AEPS<span class="text-sky-400">-ALUMNI</span></p>
+        <p class="mt-4 max-w-sm text-gray-400 leading-relaxed">Le réseau des anciens élèves de la Prépa de San-Pédro : s'entraider, se retrouver, saisir des opportunités.</p>
+      </div>
+      <div class="md:col-span-3">
+        <h3 class="font-display text-sm font-semibold text-white">Le site</h3>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-white">Accueil</a></li>
+          <li><a href="{% url 'about' %}" class="text-gray-400 hover:text-white">À propos</a></li>
+          <li><a href="{% url 'services' %}" class="text-gray-400 hover:text-white">Services</a></li>
+          <li><a href="{% url 'contact' %}" class="text-gray-400 hover:text-white">Contact</a></li>
+          <li><a href="{% url 'responsable' %}" class="text-gray-400 hover:text-white">Espace responsable</a></li>
+        </ul>
+      </div>
+      <div class="md:col-span-4">
+        <h3 class="font-display text-sm font-semibold text-white">Nous écrire</h3>
+        <ul class="mt-4 space-y-2.5 text-sm text-gray-400">
+          <li><a href="mailto:{{ contact_email }}" class="hover:text-white break-all">{{ contact_email }}</a></li>
+          <li>{{ contact_phone }}</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-12 pt-6 border-t border-gray-800 flex flex-col sm:flex-row justify-between gap-2 text-sm text-gray-400">
+      <p>&copy; 2026 AEPS-ALUMNI. Tous droits réservés.</p>
+      <p>Développé par YAMBA Loukmane</p>
+    </div>
+  </div>
+</footer>

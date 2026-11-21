@@ -1,0 +1,28 @@
+{% extends "alumni/base.html" %}
+{% block title %}Services - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40">
+  <div class="text-center mb-24 relative">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-sky-100 rounded-full -z-10 opacity-50"></div>
+    <div class="inline-flex items-center gap-2 bg-sky-50 text-sky-700 px-6 py-2 rounded-full font-semibold text-xs tracking-wide mb-8 border border-sky-100 shadow-sm">
+      Nos Services
+    </div>
+    <h1 class="text-5xl lg:text-7xl font-semibold text-gray-900 tracking-tight leading-tight mb-6">
+      Plus qu'un simple <br>
+      <span class="text-sky-700">Réseau.</span>
+    </h1>
+    <p class="mt-8 text-xl text-gray-500 font-bold max-w-2xl mx-auto leading-relaxed">
+      AEPS-ALUMNI vous accompagne tout au long de votre vie professionnelle avec des services dédiés à votre réussite.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+    {% include "alumni/partials/service_card.html" with url="members" icon="users" title="Réseautage" desc="Accédez à un annuaire exclusif et connectez-vous avec des milliers de diplômés à travers le monde." %}
+    {% include "alumni/partials/service_card.html" with url="feed" icon="newspaper" title="Actualités & Opportunités" desc="Restez informé des activités du réseau et consultez les offres d'emploi réservées aux membres." %}
+    {% include "alumni/partials/service_card.html" with url="members" icon="graduation-cap" title="Mentorat" desc="Bénéficiez de l'expérience des anciens ou guidez les nouveaux diplômés dans leur carrière." %}
+    {% include "alumni/partials/service_card.html" with url="treasury" icon="heart-handshake" title="Solidarité" desc="Participez aux projets d'entraide et soutenez les initiatives de la communauté." %}
+    {% include "alumni/partials/service_card.html" with url="home" icon="lightbulb" title="Innovation" desc="Partagez vos projets innovants et trouvez des partenaires au sein du réseau." %}
+  </div>
+</div>
+{% endblock %}

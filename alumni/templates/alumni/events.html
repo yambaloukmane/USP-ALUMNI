@@ -1,0 +1,27 @@
+{% extends "alumni/base.html" %}
+{% block title %}Événements - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12 space-y-10">
+  <div class="text-center space-y-2">
+    <h1 class="text-4xl lg:text-5xl font-semibold text-gray-900 tracking-tight">Événements</h1>
+    <p class="text-gray-500 font-medium">Réunions, rencontres et assemblées du réseau. Indiquez votre présence en un clic.</p>
+  </div>
+
+  <section class="space-y-5">
+    <h2 class="text-sm font-semibold tracking-wide text-sky-700">À venir</h2>
+    {% for e in upcoming %}
+      {% include "alumni/partials/event_card.html" with e=e %}
+    {% empty %}
+      <div class="bg-white rounded-3xl border border-gray-100 p-12 text-center text-gray-400 font-bold">Aucun événement prévu pour le moment.</div>
+    {% endfor %}
+  </section>
+
+  {% if past %}
+  <section class="space-y-5 opacity-80">
+    <h2 class="text-sm font-semibold tracking-wide text-gray-400">Passés</h2>
+    {% for e in past %}{% include "alumni/partials/event_card.html" with e=e past=True %}{% endfor %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

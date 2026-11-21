@@ -1,0 +1,30 @@
+{% extends "alumni/base.html" %}
+{% block title %}Accès Responsable - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center bg-gray-50 px-4">
+  <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+    <div class="text-center mb-8">
+      <div class="mx-auto w-12 h-12 bg-sky-100 text-sky-700 rounded-full flex items-center justify-center mb-4"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+      <h2 class="text-2xl font-bold text-gray-900">Accès Responsable</h2>
+      <p class="text-sm text-gray-500 mt-2">Veuillez saisir votre mot de passe pour accéder à la gestion.</p>
+    </div>
+
+    {% if error %}
+    <div class="mb-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm font-bold">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="password" name="password" required autofocus placeholder="Mot de passe" autocomplete="current-password"
+             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
+      <button type="submit" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg hover:bg-sky-700 transition-colors">Se connecter</button>
+    </form>
+
+    <div class="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-lg flex items-start gap-3">
+      <i data-lucide="alert-circle" class="w-[18px] h-[18px] text-amber-500 shrink-0"></i>
+      <p class="text-[12px] text-amber-700">Note: L'accès est réservé aux responsables autorisés.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

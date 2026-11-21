@@ -1,0 +1,63 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Liste des membres{% if promo %} - Promotion {{ promo }}{% endif %} - AEPS-ALUMNI</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Sora:wght@600;700&display=swap">
+  <link rel="stylesheet" href="{% static 'alumni/css/tailwind.css' %}">
+  <style>
+    @page { size: A4 landscape; margin: 12mm; }
+    @media print { .no-print { display: none !important; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } tr { break-inside: avoid; } thead { display: table-header-group; } }
+    table.list td, table.list th { border: 1px solid #bccbdb; padding: 5px 8px; font-size: 12px; vertical-align: middle; }
+    table.list th { background: #eaf0f6; text-align: left; font-weight: 700; }
+  </style>
+</head>
+<body class="bg-white">
+  <div class="no-print bg-gray-50 border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+      <button type="button" onclick="window.print()" class="btn btn-primary">Imprimer ou enregistrer en PDF</button>
+      <form method="get" class="flex flex-wrap items-center gap-4 text-sm">
+        <input type="hidden" name="promo" value="{{ promo }}">
+        <label class="flex items-center gap-2"><input type="checkbox" name="signature" value="1" {% if with_signature %}checked{% endif %} onchange="this.form.submit()"> Colonne « Signature » (feuille d'émargement)</label>
+        <label class="flex items-center gap-2"><input type="checkbox" name="all" value="1" {% if request.GET.all == "1" %}checked{% endif %} onchange="this.form.submit()"> Inclure les comptes non validés</label>
+      </form>
+      <a href="{% url 'responsable' %}?tab=members{% if promo %}&promo={{ promo }}{% endif %}" class="ml-auto text-sm font-semibold text-sky-700 hover:underline">Retour</a>
+    </div>
+  </div>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <header class="flex items-end justify-between gap-4 border-b-2 border-sky-500 pb-4 mb-5">
+      <div>
+        <p class="font-display font-bold text-xl text-gray-950">AEPS<span class="text-sky-600">-ALUMNI</span></p>
+        <h1 class="mt-1 text-2xl font-bold">{% if promo %}Membres de la promotion {{ promo }}{% else %}Liste de tous les membres{% endif %}</h1>
+      </div>
+      <p class="text-sm text-gray-600 text-right">{{ total }} membre{{ total|pluralize }}<br>Édité le {{ today|date:"d/m/Y" }}</p>
+    </header>
+
+    <table class="list w-full border-collapse">
+      <thead>
+        <tr>
+          <th style="width:36px">N°</th><th>Nom</th><th>Prénom</th>{% if not promo %}<th style="width:60px">Promo</th>{% endif %}
+          <th>Situation / métier</th><th>École</th><th>Téléphone</th><th>E-mail</th><th>Ville, pays</th>{% if with_signature %}<th style="width:140px">Signature</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td class="font-semibold">{{ m.last_name }}</td><td>{{ m.first_name }}</td>{% if not promo %}<td>{{ m.promo }}</td>{% endif %}
+          <td>{{ m.situation|default:"" }}{% if m.situation and m.job %} : {% endif %}{{ m.job|default:"" }}</td><td>{{ m.school|default:"" }}</td><td>{{ m.phone|default:"" }}</td><td>{{ m.email }}</td>
+          <td>{{ m.city|default:"" }}{% if m.city and m.country %}, {% endif %}{{ m.country|default:"" }}</td>
+          {% if with_signature %}<td style="height:30px"></td>{% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="text-center text-gray-500 py-6">Aucun membre{% if promo %} dans la promotion {{ promo }}{% endif %}.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="mt-4 text-xs text-gray-500">Document confidentiel réservé au bureau de l'association : ne pas diffuser.</p>
+  </main>
+</body>
+</html>

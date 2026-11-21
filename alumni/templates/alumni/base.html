@@ -1,0 +1,68 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr" class="h-full antialiased">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AEPS-ALUMNI - Réseau des Anciens Élèves{% endblock %}</title>
+  <meta name="description" content="Portail dynamique pour la communauté AEPS-ALUMNI">
+  <link rel="manifest" href="{% url 'manifest' %}">
+  <meta name="theme-color" content="#0ea5e9">
+  <link rel="apple-touch-icon" href="{% static 'alumni/icons/icon-192.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
+  <link rel="stylesheet" href="{% static 'alumni/css/tailwind.css' %}?v={{ asset_v }}">
+  <link rel="stylesheet" href="{% static 'alumni/css/app.css' %}?v={{ asset_v }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-full flex flex-col bg-white text-gray-900">
+  <a href="#contenu" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:px-4 focus:py-2 focus:bg-white focus:rounded-xl">Aller au contenu</a>
+  {% include "alumni/partials/navbar.html" %}
+
+  <main id="contenu" class="flex-grow">
+    {% include "alumni/partials/flash.html" %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "alumni/partials/footer.html" %}
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+  <script>if (window.lucide) lucide.createIcons();</script>
+  <script>
+    (function () {
+      var t = document.getElementById("nav-toggle"), p = document.getElementById("nav-panel");
+      if (!t || !p) return;
+      t.addEventListener("click", function () {
+        var open = p.classList.toggle("hidden") === false;
+        t.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    })();
+  </script>
+  {% if current_member %}
+  <script>
+    (function () {
+      var badge = document.getElementById("nav-unread");
+      if (!badge) return;
+      async function refresh() {
+        try {
+          var r = await fetch("{% url 'api_unread' %}", { credentials: "same-origin" });
+          if (!r.ok) return;
+          var d = await r.json();
+          badge.textContent = d.unread;
+          badge.style.display = d.unread ? "flex" : "none";
+        } catch (e) { /* silencieux : la pastille se mettra à jour au prochain passage */ }
+      }
+      refresh();
+      setInterval(function () { if (!document.hidden) refresh(); }, 30000);
+      window.addEventListener("unread:refresh", refresh);
+    })();
+  </script>
+  {% endif %}
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () { navigator.serviceWorker.register("{% url 'service_worker' %}").catch(function () {}); });
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,243 @@
+{% extends "alumni/base.html" %}
+{% block title %}Espace Responsable - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 no-print">
+    <div>
+      <h1 class="text-3xl font-semibold text-gray-900 tracking-tight">Espace Responsable</h1>
+      <p class="text-gray-500 font-medium">Membres, actualités, emplois, événements et cotisations.</p>
+    </div>
+    <div class="flex gap-3">
+      <button type="button" onclick="window.print()" class="flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-all"><i data-lucide="printer" class="w-[18px] h-[18px]"></i> Imprimer</button>
+      <form method="post" action="{% url 'responsable_logout' %}">{% csrf_token %}
+        <button type="submit" class="flex items-center gap-2 px-5 py-3 bg-red-50 text-red-600 border border-red-100 rounded-2xl font-bold hover:bg-red-100 transition-all"><i data-lucide="log-out" class="w-[18px] h-[18px]"></i> Déconnexion</button>
+      </form>
+    </div>
+  </div>
+
+  {% if schema_missing %}<div role="alert" class="mb-6 bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-xl text-sm"><strong>Mise à jour de la base de données requise.</strong> Les nouveaux champs du profil (école, situation, offres…) ne sont pas enregistrés tant que le fichier <code>supabase/migrations/20261120_003_profile_fields.sql</code> n'a pas été exécuté dans Supabase (SQL Editor).</div>{% endif %}
+  <nav class="flex gap-2 p-2 bg-gray-100 rounded-2xl mb-10 no-print overflow-x-auto" aria-label="Sections">
+    {% for key, label in tab_labels %}
+    <a href="?tab={{ key }}" class="flex-1 whitespace-nowrap text-center px-4 py-3 rounded-xl font-semibold text-sm {% if tab == key %}bg-white text-gray-900 shadow-sm{% else %}text-gray-400 hover:text-gray-600{% endif %}">{{ label }}{% if key == "members" or key == "jobs" %}{% if pending_count %} <span class="ml-1 text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full">{{ pending_count }}</span>{% endif %}{% endif %}</a>
+    {% endfor %}
+  </nav>
+
+  {% if tab == "dashboard" %}
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    {% for label, value in kpis %}
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6"><p class="text-xs font-semibold text-gray-400 tracking-wider">{{ label }}</p><p class="text-3xl font-semibold text-gray-900 mt-2">{{ value }}</p></div>
+    {% endfor %}
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:col-span-1">
+      <h2 class="font-semibold text-gray-900 mb-1">Cotisations {{ stats.year }}</h2>
+      <p class="text-sm text-gray-500 font-medium mb-4">{{ stats.dues_paid }} / {{ stats.dues_total }} payées · {{ stats.dues_sum }} {{ stats.currency }}</p>
+      <div class="h-3 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" style="width: {{ stats.dues_rate }}%"></div></div>
+      <p class="text-xs font-semibold text-gray-400 mt-2">{{ stats.dues_rate }} %</p>
+    </div>
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+      <h2 class="font-semibold text-gray-900 mb-4">Membres par promotion</h2>
+      {% for p, n, pct in stats.by_promo %}
+      <div class="flex items-center gap-3 mb-2 text-sm"><span class="w-16 font-bold text-gray-600">{{ p }}</span><div class="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-sky-500" style="width: {{ pct }}%"></div></div><span class="w-6 text-right font-semibold text-gray-900">{{ n }}</span></div>
+      {% empty %}<p class="text-gray-400 text-sm font-bold">Aucune donnée.</p>{% endfor %}
+    </div>
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+      <h2 class="font-semibold text-gray-900 mb-4">Membres par pays</h2>
+      {% for c, n, pct in stats.by_country %}
+      <div class="flex items-center gap-3 mb-2 text-sm"><span class="w-24 font-bold text-gray-600 truncate">{{ c }}</span><div class="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-indigo-500" style="width: {{ pct }}%"></div></div><span class="w-6 text-right font-semibold text-gray-900">{{ n }}</span></div>
+      {% empty %}<p class="text-gray-400 text-sm font-bold">Aucune donnée.</p>{% endfor %}
+    </div>
+  </div>
+
+  {% elif tab == "members" %}
+  <form method="get" class="flex flex-wrap items-end gap-3 mb-4 no-print">
+    <input type="hidden" name="tab" value="members">
+    <div><label for="f-promo" class="block text-sm font-semibold text-gray-700 mb-1">Promotion</label>
+      <select id="f-promo" name="promo" onchange="this.form.submit()" class="p-3 bg-white border border-gray-200 rounded-xl min-w-44"><option value="">Toutes les promotions</option>{% for p in promos %}<option value="{{ p }}" {% if promo == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+    <noscript><button class="btn btn-light">Filtrer</button></noscript>
+    <div class="flex flex-wrap gap-2 sm:ml-auto">
+      <a href="{% url 'admin_members_print' %}?promo={{ promo }}" target="_blank" rel="noopener" class="btn btn-primary"><i data-lucide="printer" class="w-[18px] h-[18px]"></i> Imprimer la liste{% if promo %} de la promo {{ promo }}{% endif %}</a>
+      <a href="{% url 'admin_export_members' %}?promo={{ promo }}" class="btn btn-light"><i data-lucide="download" class="w-[18px] h-[18px]"></i> Exporter en CSV</a>
+    </div>
+  </form>
+  <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-left">
+      <thead class="bg-gray-50 text-xs font-semibold text-gray-500 tracking-wider"><tr>
+        <th class="px-6 py-4">Nom</th><th class="px-6 py-4">Promo</th><th class="px-6 py-4">Statut</th><th class="px-6 py-4">Rôle</th><th class="px-6 py-4 text-right no-print">Actions</th></tr></thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for m in members %}
+        <tr class="hover:bg-gray-50/50">
+          <td class="px-6 py-3"><p class="font-bold text-gray-900">{{ m.last_name }} {{ m.first_name }}</p><p class="text-xs text-gray-400">{{ m.email }}</p>{% if m.school or m.situation %}<p class="text-xs text-gray-500">{{ m.situation }}{% if m.school and m.situation %} · {% endif %}{{ m.school }}</p>{% endif %}{% if m.referent and m.status == "pending" %}<p class="text-xs text-sky-700">Référent : {{ m.referent }}</p>{% endif %}</td>
+          <td class="px-6 py-3 text-gray-600 font-medium">{{ m.promo }}</td>
+          <td class="px-6 py-3">
+            {% if m.status == "pending" %}<span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-600">À valider</span>
+            {% elif m.status == "suspended" %}<span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600">Suspendu</span>
+            {% else %}<span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Actif</span>{% endif %}
+          </td>
+          <td class="px-6 py-3 text-gray-600 font-medium">{{ m.role|default:"member" }}</td>
+          <td class="px-6 py-3 text-right no-print">
+            <div class="flex justify-end gap-2 flex-wrap">
+              {% if m.status == "pending" or m.status == "suspended" %}
+              <form method="post" action="{% url 'admin_member_status' m.id %}">{% csrf_token %}<input type="hidden" name="status" value="active"><button class="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-semibold hover:bg-emerald-600">{% if m.status == "pending" %}Valider{% else %}Réactiver{% endif %}</button></form>
+              {% else %}
+              {% if m.id != me_id %}<form method="post" action="{% url 'admin_member_status' m.id %}" data-confirm="Suspendre ce membre ?">{% csrf_token %}<input type="hidden" name="status" value="suspended"><button class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200">Suspendre</button></form>{% endif %}
+              {% endif %}
+              {% if m.id != me_id %}
+              <form method="post" action="{% url 'admin_member_role' m.id %}">{% csrf_token %}<input type="hidden" name="role" value="{% if m.role == 'admin' %}member{% else %}admin{% endif %}"><button class="px-3 py-1.5 bg-sky-50 text-sky-700 rounded-lg text-xs font-semibold hover:bg-sky-100">{% if m.role == "admin" %}Retirer admin{% else %}Nommer admin{% endif %}</button></form>
+              <form method="post" action="{% url 'admin_member_delete' m.id %}" data-confirm="Supprimer {{ m.first_name|escapejs }} {{ m.last_name|escapejs }} définitivement ?">{% csrf_token %}<button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg" aria-label="Supprimer"><i data-lucide="trash-2" class="w-[18px] h-[18px]"></i></button></form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 font-bold">Aucun membre inscrit.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif tab == "news" %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form method="post" action="{% url 'admin_news_add' %}" class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-4 h-fit">{% csrf_token %}
+      <h2 class="text-xl font-semibold text-gray-900">Publier une actualité</h2>
+      <div><label for="n-title" class="block text-sm font-semibold text-gray-700 mb-1">Titre</label>
+        <input id="n-title" name="title" type="text" required maxlength="200" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="n-img" class="block text-sm font-semibold text-gray-700 mb-1">URL de l'image (optionnel)</label>
+        <input id="n-img" name="img" type="url" placeholder="https://..." class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="n-desc" class="block text-sm font-semibold text-gray-700 mb-1">Contenu</label><textarea id="n-desc" name="desc" rows="5" required class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></textarea></div>
+      <label class="flex items-center gap-3 text-sm font-bold text-gray-700"><input type="checkbox" name="notify" class="h-4 w-4"> Prévenir les membres par e-mail</label>
+      <button type="submit" class="w-full py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700 transition-all">Publier</button>
+    </form>
+    <div class="lg:col-span-2 space-y-4">
+      {% for n in news %}
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+        <div class="flex gap-5 items-center">
+          <img src="{{ n.img|default:default_news_image }}" alt="" class="w-20 h-20 rounded-2xl object-cover shrink-0" referrerpolicy="no-referrer" loading="lazy">
+          <div class="flex-grow min-w-0"><h3 class="font-semibold text-gray-900 truncate">{{ n.title }}</h3><p class="text-xs font-bold text-sky-700 mb-1">{{ n.date }}</p><p class="text-sm text-gray-500 line-clamp-2">{{ n.desc }}</p></div>
+          <form method="post" action="{% url 'admin_news_delete' n.id %}" data-confirm="Supprimer cette actualité ?" class="no-print">{% csrf_token %}
+          <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" aria-label="Supprimer"><i data-lucide="trash-2" class="w-[18px] h-[18px]"></i></button></form>
+        </div>
+        <details class="mt-4 no-print"><summary class="cursor-pointer text-sm font-semibold text-sky-700">Modifier</summary>
+          <form method="post" action="{% url 'admin_news_edit' n.id %}" class="mt-3 space-y-3">{% csrf_token %}
+            <input name="title" value="{{ n.title }}" required maxlength="200" aria-label="Titre" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <input name="img" value="{{ n.img|default:'' }}" type="url" aria-label="URL de l'image" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <textarea name="desc" rows="4" required aria-label="Contenu" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">{{ n.desc }}</textarea>
+            <button class="px-5 py-2 bg-sky-600 text-white rounded-xl font-semibold text-sm">Enregistrer</button>
+          </form></details>
+      </div>
+      {% empty %}<p class="text-center text-gray-400 font-bold py-12">Aucune actualité publiée.</p>{% endfor %}
+    </div>
+  </div>
+
+  {% elif tab == "jobs" %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form method="post" action="{% url 'admin_job_add' %}" class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-4 h-fit">{% csrf_token %}
+      <h2 class="text-xl font-semibold text-gray-900">Publier une offre</h2>
+      <div><label for="j-title" class="block text-sm font-semibold text-gray-700 mb-1">Intitulé du poste</label>
+        <input id="j-title" name="title" type="text" required maxlength="200" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="j-company" class="block text-sm font-semibold text-gray-700 mb-1">Entreprise</label>
+        <input id="j-company" name="company" type="text" required maxlength="200" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="j-location" class="block text-sm font-semibold text-gray-700 mb-1">Lieu</label>
+        <input id="j-location" name="location" type="text" required maxlength="200" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="j-type" class="block text-sm font-semibold text-gray-700 mb-1">Type de contrat</label><select id="j-type" name="type" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">{% for t in job_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select></div>
+      <div><label for="j-salary" class="block text-sm font-semibold text-gray-700 mb-1">Salaire (optionnel)</label>
+        <input id="j-salary" name="salary" type="text" maxlength="100" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="j-apply" class="block text-sm font-semibold text-gray-700 mb-1">E-mail ou lien pour postuler (optionnel)</label>
+        <input id="j-apply" name="apply_contact" type="text" maxlength="200" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="j-exp" class="block text-sm font-semibold text-gray-700 mb-1">Date limite (optionnel)</label>
+        <input id="j-exp" name="expires_at" type="date"  class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <button type="submit" class="w-full py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700 transition-all">Publier</button>
+    </form>
+    <div class="lg:col-span-2 space-y-4">
+      {% for j in jobs %}
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+        <div class="flex gap-5 items-center">
+          <div class="w-14 h-14 bg-sky-50 text-sky-700 rounded-2xl flex items-center justify-center shrink-0"><i data-lucide="briefcase" class="w-6 h-6"></i></div>
+          <div class="flex-grow min-w-0">
+            <h3 class="font-semibold text-gray-900 truncate">{{ j.title }}
+              <span class="ml-2 text-xs px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full tracking-wide">{{ j.type|default:"CDI" }}</span>
+              {% if j.status == "pending" %}<span class="ml-1 text-xs px-3 py-1 bg-amber-50 text-amber-600 rounded-full tracking-wide">À valider</span>{% endif %}
+              {% if j.expired %}<span class="ml-1 text-xs px-3 py-1 bg-gray-100 text-gray-500 rounded-full tracking-wide">Expirée</span>{% endif %}</h3>
+            <p class="text-sm text-gray-500 font-medium">{{ j.company }} · {{ j.location }}{% if j.salary %} · {{ j.salary }}{% endif %}{% if j.expires_at %} · jusqu'au {{ j.expires_at }}{% endif %}</p>
+          </div>
+          {% if j.status == "pending" %}<form method="post" action="{% url 'admin_job_approve' j.id %}" class="no-print">{% csrf_token %}<button class="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-semibold">Valider</button></form>{% endif %}
+          <form method="post" action="{% url 'admin_job_delete' j.id %}" data-confirm="Supprimer cette offre ?" class="no-print">{% csrf_token %}
+          <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" aria-label="Supprimer"><i data-lucide="trash-2" class="w-[18px] h-[18px]"></i></button></form>
+        </div>
+        <details class="mt-4 no-print"><summary class="cursor-pointer text-sm font-semibold text-sky-700">Modifier</summary>
+          <form method="post" action="{% url 'admin_job_edit' j.id %}" class="mt-3 grid sm:grid-cols-2 gap-3">{% csrf_token %}
+            <input name="title" value="{{ j.title }}" required aria-label="Poste" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <input name="company" value="{{ j.company }}" required aria-label="Entreprise" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <input name="location" value="{{ j.location }}" required aria-label="Lieu" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <select name="type" aria-label="Contrat" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">{% for t in job_types %}<option value="{{ t }}" {% if j.type == t %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
+            <input name="salary" value="{{ j.salary|default:'' }}" placeholder="Salaire" aria-label="Salaire" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <input name="apply_contact" value="{{ j.apply_contact|default:'' }}" placeholder="Contact" aria-label="Contact" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <input name="expires_at" type="date" value="{{ j.expires_at|default:'' }}" aria-label="Date limite" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500">
+            <button class="px-5 py-2 bg-sky-600 text-white rounded-xl font-semibold text-sm">Enregistrer</button>
+          </form></details>
+      </div>
+      {% empty %}<p class="text-center text-gray-400 font-bold py-12">Aucune offre publiée.</p>{% endfor %}
+    </div>
+  </div>
+
+  {% elif tab == "events" %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form method="post" action="{% url 'admin_event_add' %}" class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-4 h-fit">{% csrf_token %}
+      <h2 class="text-xl font-semibold text-gray-900">Créer un événement</h2>
+      <div><label for="e-title" class="block text-sm font-semibold text-gray-700 mb-1">Titre</label>
+        <input id="e-title" name="title" type="text" required maxlength="200" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="e-when" class="block text-sm font-semibold text-gray-700 mb-1">Date et heure</label>
+        <input id="e-when" name="starts_at" type="datetime-local" required class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="e-loc" class="block text-sm font-semibold text-gray-700 mb-1">Lieu</label>
+        <input id="e-loc" name="location" type="text" maxlength="200" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></div>
+      <div><label for="e-desc" class="block text-sm font-semibold text-gray-700 mb-1">Description</label><textarea id="e-desc" name="description" rows="4" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-sky-500"></textarea></div>
+      <label class="flex items-center gap-3 text-sm font-bold text-gray-700"><input type="checkbox" name="notify" class="h-4 w-4"> Prévenir les membres par e-mail</label>
+      <button type="submit" class="w-full py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700 transition-all">Créer</button>
+    </form>
+    <div class="lg:col-span-2 space-y-4">
+      {% for e in events %}
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+        <div class="flex gap-5 items-center">
+          <div class="flex-grow min-w-0"><h3 class="font-semibold text-gray-900">{{ e.title }}</h3><p class="text-sm text-sky-700 font-bold">{{ e.starts|date:"d/m/Y H:i" }}{% if e.location %} · {{ e.location }}{% endif %}</p>
+            <p class="text-xs text-gray-500 font-bold mt-1">{{ e.attendees|length }} participant{{ e.attendees|length|pluralize }}</p></div>
+          <form method="post" action="{% url 'admin_event_delete' e.id %}" data-confirm="Supprimer cet événement ?" class="no-print">{% csrf_token %}
+          <button type="submit" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" aria-label="Supprimer"><i data-lucide="trash-2" class="w-[18px] h-[18px]"></i></button></form>
+        </div>
+        {% if e.attendees %}<details class="mt-3"><summary class="cursor-pointer text-sm font-semibold text-sky-700">Voir les inscrits</summary><p class="mt-2 text-sm text-gray-600">{{ e.attendees|join:", " }}</p></details>{% endif %}
+      </div>
+      {% empty %}<p class="text-center text-gray-400 font-bold py-12">Aucun événement.</p>{% endfor %}
+    </div>
+  </div>
+
+  {% else %}
+  <div class="flex flex-col md:flex-row gap-6 mb-8 no-print">
+    <form method="post" action="{% url 'admin_dues_generate' %}" class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-end gap-4 flex-1">{% csrf_token %}
+      <div><label for="d-year" class="block text-sm font-semibold text-gray-700 mb-1">Année</label><input id="d-year" name="year" type="number" value="{{ year }}" class="w-28 p-3 bg-gray-50 border border-gray-100 rounded-xl"></div>
+      <div><label for="d-amount" class="block text-sm font-semibold text-gray-700 mb-1">Montant ({{ currency }})</label><input id="d-amount" name="amount" type="number" min="5" step="5" value="{{ default_amount }}" class="w-36 p-3 bg-gray-50 border border-gray-100 rounded-xl"></div>
+      <button class="px-6 py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700">Générer pour tous les membres actifs</button>
+    </form>
+    <a href="{% url 'admin_export_dues' %}?year={{ year }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 self-start"><i data-lucide="download" class="w-[18px] h-[18px]"></i> CSV {{ year }}</a>
+  </div>
+  <p class="mb-4 font-bold text-gray-600">{{ paid_count }} / {{ dues|length }} payées · {{ paid_sum }} {{ currency }}</p>
+  <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-left">
+      <thead class="bg-gray-50 text-xs font-semibold text-gray-500 tracking-wider"><tr><th class="px-6 py-4">Membre</th><th class="px-6 py-4">Promo</th><th class="px-6 py-4">Montant</th><th class="px-6 py-4">Statut</th><th class="px-6 py-4 text-right no-print">Action</th></tr></thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for d in dues %}
+        <tr><td class="px-6 py-3 font-bold text-gray-900">{{ d.name }}</td><td class="px-6 py-3 text-gray-600">{{ d.promo }}</td><td class="px-6 py-3 text-gray-600">{{ d.amount }} {{ currency }}</td>
+          <td class="px-6 py-3">{% if d.status == "paid" %}<span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Payée</span>{% else %}<span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-600">En attente</span>{% endif %}</td>
+          <td class="px-6 py-3 text-right no-print"><form method="post" action="{% url 'admin_dues_toggle' d.id %}">{% csrf_token %}<button class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200">{% if d.status == "paid" %}Annuler{% else %}Marquer payée{% endif %}</button></form></td></tr>
+        {% empty %}<tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 font-bold">Aucune cotisation pour {{ year }}. Générez-les ci-dessus.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll("form[data-confirm]").forEach(function (f) {
+  f.addEventListener("submit", function (e) { if (!window.confirm(f.dataset.confirm)) e.preventDefault(); });
+});
+</script>
+{% endblock %}

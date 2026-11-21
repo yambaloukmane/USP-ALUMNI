@@ -1,0 +1,72 @@
+{% extends "alumni/base.html" %}
+{% block title %}À propos - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-40">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-32">
+    <div class="space-y-10 order-2 lg:order-1">
+      <div class="inline-flex items-center gap-2 bg-sky-50 text-sky-700 px-6 py-2 rounded-full font-semibold text-xs tracking-wide border border-sky-100 shadow-sm">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+        Notre Mission
+      </div>
+      <h1 class="text-5xl lg:text-7xl font-semibold text-gray-900 tracking-tight leading-tight">
+        Unir l'élite de <br>
+        <span class="text-sky-700 text-6xl lg:text-8xl">Demain.</span>
+      </h1>
+      <p class="text-xl text-gray-500 font-bold leading-relaxed max-w-xl">
+        Depuis 2021, AEPS-ALUMNI s'est imposé comme le réseau d'excellence pour les anciens élèves de l'Université Polytechnique de San-Pédro (UPSP), favorisant la collaboration et l'innovation à l'échelle mondiale.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <div class="flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-2xl border border-gray-100 font-semibold text-gray-700">
+          <i data-lucide="sparkles" class="w-[18px] h-[18px] text-sky-700"></i>
+          Réseau Privé
+        </div>
+        <div class="flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-2xl border border-gray-100 font-semibold text-gray-700">
+          <i data-lucide="globe" class="w-[18px] h-[18px] text-sky-700"></i>
+          Impact Global
+        </div>
+      </div>
+    </div>
+
+    <div class="relative order-1 lg:order-2">
+      <div class="absolute -inset-4 bg-sky-500/10 rounded-3xl -z-10"></div>
+      <div class="relative bg-white p-4 rounded-3xl shadow-md border border-gray-100 transition-all duration-500 group">
+        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800&h=600&auto=format&fit=crop" alt="Alumni Community" class="rounded-2xl w-full h-[450px] object-cover group-hover:scale-[1.02] transition- duration-700">
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-32">
+    <div class="bg-white p-12 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-sky-100 transition-all group relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full -mr-16 -mt-16 transition-"></div>
+      <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mb-8 text-sky-700 relative z-10"><i data-lucide="target" class="w-6 h-6"></i></div>
+      <h3 class="text-2xl font-semibold mb-4 relative z-10 text-gray-900">Excellence</h3>
+      <p class="text-gray-500 font-medium leading-relaxed relative z-10">Nous visons les plus hauts standards académiques et professionnels.</p>
+    </div>
+    <div class="bg-white p-12 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-sky-100 transition-all group relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full -mr-16 -mt-16 transition-"></div>
+      <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mb-8 text-sky-700 relative z-10"><i data-lucide="users" class="w-6 h-6"></i></div>
+      <h3 class="text-2xl font-semibold mb-4 relative z-10 text-gray-900">Solidarité</h3>
+      <p class="text-gray-500 font-medium leading-relaxed relative z-10">L'entraide entre les générations de diplômés est notre force.</p>
+    </div>
+    <div class="bg-white p-12 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-sky-100 transition-all group relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full -mr-16 -mt-16 transition-"></div>
+      <div class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mb-8 text-sky-700 relative z-10"><i data-lucide="globe" class="w-6 h-6"></i></div>
+      <h3 class="text-2xl font-semibold mb-4 relative z-10 text-gray-900">Impact</h3>
+      <p class="text-gray-500 font-medium leading-relaxed relative z-10">Nos alumni transforment le monde à travers leurs innovations.</p>
+    </div>
+  </div>
+
+  <div class="bg-gray-900 rounded-3xl p-12 lg:p-24 text-white relative overflow-hidden text-center lg:text-left">
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-sky-500/10 rounded-full -mr-32 -mb-32"></div>
+    <div class="flex flex-col lg:flex-row items-center gap-16 relative z-10">
+      <div class="flex-grow space-y-8">
+        <h2 class="text-4xl lg:text-6xl font-semibold leading-tight tracking-tight">Votre parcours <br>ne s'arrête pas au <br><span class="text-sky-400">Diplôme.</span></h2>
+        <p class="text-sky-100/60 text-lg font-medium leading-relaxed max-w-lg">
+          Devenir membre d'AEPS-ALUMNI, c'est s'assurer un soutien constant et un accès direct aux meilleures opportunités du marché, portées par une communauté qui partage vos valeurs.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
