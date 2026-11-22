@@ -1,7 +1,7 @@
 {
   "routes": [
-    { "src": "^/(?:config|alumni|supabase|frontend|\\.github|\\.vscode)(?:/.*)?$", "status": 404 },
-    { "src": "^/(?:api/index\\.py|manage\\.py|Dockerfile|docker-compose\\.yml|pyproject\\.toml|requirements.*\\.txt|README\\.md|\\.gitignore|\\.dockerignore|\\.env.*|vercel\\.json)$", "status": 404 },
+    { "src": "^/(?:config|alumni|supabase|frontend|\\.github|\\.vscode)(?:/.*)?$", "dest": "/api/index" },
+    { "src": "^/(?:api/index\\.py|manage\\.py|Dockerfile|docker-compose\\.yml|pyproject\\.toml|requirements.*\\.txt|README\\.md|\\.gitignore|\\.dockerignore|\\.env.*|vercel\\.json)$", "dest": "/api/index" },
     { "src": "/(.*)", "dest": "/api/index" }
   ],
   "functions": {
