@@ -1,5 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
+  "routes": [
+    { "src": "^/(?:config|alumni|supabase|frontend|\\.github|\\.vscode)(?:/.*)?$", "status": 404 },
+    { "src": "^/(?:api/index\\.py|manage\\.py|Dockerfile|docker-compose\\.yml|pyproject\\.toml|requirements.*\\.txt|README\\.md|\\.gitignore|\\.dockerignore|\\.env.*|vercel\\.json)$", "status": 404 },
+    { "src": "/(.*)", "dest": "/api/index" }
+  ],
   "functions": {
     "api/index.py": { "includeFiles": "{alumni,config}/**", "maxDuration": 30 }
   }
