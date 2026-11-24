@@ -204,10 +204,7 @@ def member_status(request, member_id):
     result = _run(request, lambda: ds.admin_update_member(member_id, {"status": status}),
                   "Inscription validée." if member.get("status") == "pending" else "Statut modifié.", "members")
     if status == "active" and member.get("status") == "pending" and member.get("email"):
-        emails.send_simple(
-            member["email"], "Votre inscription AEPS-ALUMNI est validée",
-            f"Bonjour {member.get('first_name', '')},\n\nVotre inscription a été validée. "
-            f"Vous pouvez vous connecter : {external_url(reverse('login'))}\n")
+        emails.send_welcome_email(member["email"], member.get("first_name", ""), external_url(reverse("login")))
     return result
 
 

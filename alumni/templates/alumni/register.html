@@ -23,7 +23,7 @@
 
       <section data-step="1">
         <h2 class="text-xl font-semibold mb-1">Votre compte</h2>
-        <p class="text-gray-600 mb-6">Votre adresse e-mail recevra le code de confirmation.</p>
+        <p class="text-gray-600 mb-6">Votre adresse e-mail recevra le code de confirmation.{% if require_approval %} Un responsable validera ensuite votre inscription avant l'accès complet au réseau.{% endif %}</p>
         <div class="grid gap-5 sm:grid-cols-2">
           {% include "alumni/partials/in.html" with label="Prénom" name="first_name" value=f.first_name required=True autocomplete="given-name" maxlength="80" %}
           {% include "alumni/partials/in.html" with label="Nom" name="last_name" value=f.last_name required=True autocomplete="family-name" maxlength="80" %}

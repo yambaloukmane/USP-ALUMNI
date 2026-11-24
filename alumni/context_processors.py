@@ -29,4 +29,5 @@ def site(request):
         "asset_v": ASSET_VERSION,
         "contact_email": settings.CONTACT_EMAIL,
         "contact_phone": settings.CONTACT_PHONE,
+        "require_approval": settings.REQUIRE_APPROVAL,
     }

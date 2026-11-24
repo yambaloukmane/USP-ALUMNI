@@ -36,11 +36,49 @@ def send_code_email(to: str, first_name: str, code: str, purpose: str = "registe
     send_mail(
         subject=CODE_SUBJECTS[purpose],
         message=(f"Bonjour {first_name},\n\n{intro} {code}\n\nIl est valable {minutes} minutes.\n"
-                "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.\n"),
+                 "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.\n"),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[to],
         html_message=html,
     )
+
+
+def send_welcome_email(to: str, first_name: str, login_url: str) -> None:
+    """E-mail de bienvenue envoyé quand un responsable valide une inscription. N'empêche pas la validation si l'envoi échoue."""
+    html = (
+        '<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;'
+        'border:1px solid #e5e7eb;border-radius:16px">'
+        '<h2 style="color:#0ea5e9;margin:0 0 16px">AEPS-ALUMNI</h2>'
+        f"<p>Bonjour {escape(first_name)},</p>"
+        "<p>Bonne nouvelle : votre inscription au réseau des anciens élèves de la Prépa de San-Pédro "
+        "vient d'être validée par un responsable. Bienvenue parmi nous !</p>"
+        "<p>Vous pouvez dès maintenant vous connecter, compléter votre profil et retrouver votre promotion, "
+        "consulter l'annuaire, les offres d'emploi et de stage, ainsi que les événements du réseau.</p>"
+        f'<p style="text-align:center;margin:24px 0">'
+        f'<a href="{escape(login_url)}" style="background:#0ea5e9;color:#ffffff;text-decoration:none;'
+        'font-weight:bold;padding:12px 28px;border-radius:999px;display:inline-block">Me connecter</a></p>'
+        '<p style="color:#6b7280;font-size:12px">À bientôt sur le réseau !</p></div>'
+    )
+    text = (
+        f"Bonjour {first_name},\n\n"
+        "Bonne nouvelle : votre inscription au réseau des anciens élèves de la Prépa de San-Pédro "
+        "vient d'être validée par un responsable. Bienvenue parmi nous !\n\n"
+        "Vous pouvez dès maintenant vous connecter, compléter votre profil et retrouver votre promotion, "
+        "consulter l'annuaire, les offres d'emploi et de stage, ainsi que les événements du réseau.\n\n"
+        f"Connexion : {login_url}\n"
+    )
+
+    def work():
+        try:
+            send_mail(
+                subject="Bienvenue sur AEPS-ALUMNI, votre inscription est validée !",
+                message=text, from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[to], html_message=html,
+            )
+        except Exception as exc:  # noqa: BLE001
+            log.error("Welcome email to %s failed: %s", to, exc)
+
+    _run(work)
 
 
 def _run(work) -> None:
