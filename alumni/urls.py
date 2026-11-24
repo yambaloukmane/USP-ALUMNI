@@ -22,6 +22,7 @@ urlpatterns = [
     path("forgot/", auth.forgot, name="forgot"),
     path("forgot/verify/", auth.forgot_verify, name="forgot_verify"),
     path("profile/", profile.profile, name="profile"),
+    path("bienvenue/", profile.welcome, name="welcome"),
     path("profile/avatar/", profile.profile_avatar, name="profile_avatar"),
     path("avatar/<str:member_id>/", profile.avatar_image, name="avatar"),
 

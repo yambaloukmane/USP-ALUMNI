@@ -19,6 +19,14 @@ from ._common import MAX_UPLOAD_BYTES, session_member
 
 log = logging.getLogger(__name__)
 
+
+@member_required
+@require_GET
+def welcome(request):
+    """Page affichée au nouveau membre juste après la validation de son inscription (lien de l'e-mail de bienvenue)."""
+    return render(request, "alumni/welcome.html", {"member": session_member(request)})
+
+
 @member_required
 @require_http_methods(["GET", "POST"])
 def profile(request):

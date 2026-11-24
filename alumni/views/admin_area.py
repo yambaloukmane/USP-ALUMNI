@@ -4,6 +4,7 @@ import hmac
 import logging
 from collections import Counter
 from datetime import datetime
+from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib import messages as flash
@@ -204,7 +205,8 @@ def member_status(request, member_id):
     result = _run(request, lambda: ds.admin_update_member(member_id, {"status": status}),
                   "Inscription validée." if member.get("status") == "pending" else "Statut modifié.", "members")
     if status == "active" and member.get("status") == "pending" and member.get("email"):
-        emails.send_welcome_email(member["email"], member.get("first_name", ""), external_url(reverse("login")))
+        login_url = external_url(f"{reverse('login')}?next={quote(reverse('welcome'))}")
+        emails.send_welcome_email(member["email"], member.get("first_name", ""), login_url)
     return result
 
 

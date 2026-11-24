@@ -1,0 +1,29 @@
+{% extends "alumni/base.html" %}
+{% block title %}Bienvenue - AEPS-ALUMNI{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+  <div class="text-center mb-16">
+    <div class="w-24 h-24 bg-emerald-500 text-white rounded-2xl flex items-center justify-center mx-auto shadow-md mb-8">
+      <i data-lucide="party-popper" class="w-12 h-12"></i>
+    </div>
+    <h1 class="text-4xl lg:text-5xl font-semibold text-gray-900 tracking-tight mb-4">Bienvenue, {{ member.first_name }} !</h1>
+    <p class="mt-4 text-xl text-gray-500 font-bold max-w-2xl mx-auto leading-relaxed">
+      Votre inscription au réseau des anciens élèves de la Prépa de San-Pédro vient d'être validée par un responsable.
+      Vous faites désormais partie de la famille AEPS-ALUMNI.
+    </p>
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+      <a href="{% url 'profile' %}" class="btn btn-primary">Compléter mon profil</a>
+      <a href="{% url 'members' %}" class="btn btn-light">Parcourir l'annuaire</a>
+    </div>
+  </div>
+
+  <p class="text-center text-sm font-semibold text-gray-400 tracking-wide mb-8">CE QUI VOUS ATTEND SUR LE RÉSEAU</p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {% include "alumni/partials/service_card.html" with url="members" icon="users" title="Annuaire" desc="Retrouvez vos camarades de promotion et élargissez votre réseau professionnel." %}
+    {% include "alumni/partials/service_card.html" with url="feed" icon="briefcase" title="Offres" desc="Consultez les offres d'emploi et de stage partagées par les anciens." %}
+    {% include "alumni/partials/service_card.html" with url="events" icon="calendar-days" title="Événements" desc="Participez aux rencontres et assemblées du réseau." %}
+    {% include "alumni/partials/service_card.html" with url="feed" icon="handshake" title="Mentorat" desc="Échangez avec des mentors ou proposez votre propre accompagnement." %}
+  </div>
+</div>
+{% endblock %}

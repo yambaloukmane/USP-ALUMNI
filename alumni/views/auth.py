@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 @require_http_methods(["GET", "POST"])
 def login_view(request):
     if request.method == "GET" and request.session.get("member"):
-        return redirect("profile")
+        return redirect(safe_next(request, reverse("profile")))
 
     error, email = "", ""
     if request.method == "POST":
