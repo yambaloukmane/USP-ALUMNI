@@ -134,17 +134,23 @@ class AdminTests(ViewTestCase):
         self.assertIn("Prenom2", body)
         self.assertNotIn("Prenom1", body)
 
-    def test_responsable_sets_and_uses_due_rate(self):
+    def test_responsable_sets_due_rate_for_everyone(self):
         self.client.post("/responsable/", {"password": "adm"})
         r = self.client.post("/responsable/dues/set-rate/", {"year": "2026", "amount": "7500"})
         self.assertEqual(r.status_code, 302)
         self.assertEqual(self.store.due_rates[2026], 7500)
-
-        r = self.client.post("/responsable/dues/generate/", {"year": "2026", "amount": "9000"})
-        self.assertEqual(r.status_code, 302)
-        self.assertEqual(self.store.due_rates[2026], 9000)  # le montant est remplacé par celui de la génération
         self.assertEqual(len(self.store.dues), 2)  # les 2 membres actifs (le 3e est en attente de validation)
-        self.assertTrue(all(d["amount"] == 9000 for d in self.store.dues))
+        self.assertTrue(all(d["amount"] == 7500 for d in self.store.dues))
+
+        # Un membre règle sa cotisation au montant en vigueur...
+        self.store.dues[0]["status"] = "paid"
+        # ...puis les responsables changent le montant : il s'applique à tous les membres non payés,
+        # sans exception, mais ne modifie jamais une cotisation déjà réglée.
+        r = self.client.post("/responsable/dues/set-rate/", {"year": "2026", "amount": "9000"})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.store.due_rates[2026], 9000)
+        self.assertEqual(self.store.dues[0]["amount"], 7500)  # déjà payée : inchangée
+        self.assertEqual(self.store.dues[1]["amount"], 9000)  # pas encore payée : alignée
 
         r = self.client.post("/responsable/dues/set-rate/", {"year": "2026", "amount": "0"})
         self.assertEqual(r.status_code, 302)

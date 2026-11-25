@@ -50,6 +50,16 @@ class Store:
                     created += 1
             return created
 
+        def _apply_due_rate(year, amount, member_ids):
+            existing = {d["member_id"]: d for d in s.dues if d["year"] == year}
+            created = _ensure_dues(year, amount, [mid for mid in member_ids if mid not in existing])
+            updated = 0
+            for d in existing.values():
+                if d["status"] != "paid" and d["amount"] != amount:
+                    d["amount"] = amount
+                    updated += 1
+            return created, updated
+
         def _add_comment(post_type, post_id, member_id, body):
             c = {"id": str(len(s.comments) + 1), "post_type": post_type, "post_id": str(post_id),
                  "member_id": str(member_id), "body": body, "created_at": "2024-01-01T00:00:00+00:00"}
@@ -72,10 +82,11 @@ class Store:
             "authenticate": lambda e, p: dict(next((m for m in s.members if m["email"] == e), {})) or None if p == "pw" else None,
             "get_news": lambda: s.news, "get_jobs": lambda: s.jobs, "get_public_jobs": lambda: s.jobs,
             "get_events": lambda: s.events, "get_rsvps": lambda: s.rsvps, "get_photos": lambda: s.photos,
-            "get_dues": lambda year=None: s.dues, "get_member_dues": lambda i: [d for d in s.dues if d["member_id"] == i],
+            "get_dues": lambda year=None: [d for d in s.dues if year is None or d["year"] == year],
+            "get_member_dues": lambda i: [d for d in s.dues if d["member_id"] == i],
             "get_or_create_due": lambda m, y, a: None, "get_due_by_reference": lambda r: None,
             "get_due_rate": lambda y: s.due_rates.get(y), "set_due_rate": lambda y, a: s.due_rates.__setitem__(y, a),
-            "ensure_dues": _ensure_dues,
+            "ensure_dues": _ensure_dues, "apply_due_rate": _apply_due_rate,
             "get_due": lambda i: next((d for d in s.dues if d["id"] == str(i)), None),
             "mark_due_paid": lambda i, method: next(d for d in s.dues if d["id"] == str(i)).update(
                 {"status": "paid", "method": method}),

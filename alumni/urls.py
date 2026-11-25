@@ -69,7 +69,6 @@ urlpatterns = [
     path("responsable/jobs/<str:job_id>/delete/", admin_area.job_delete, name="admin_job_delete"),
     path("responsable/events/add/", admin_area.event_add, name="admin_event_add"),
     path("responsable/events/<str:event_id>/delete/", admin_area.event_delete, name="admin_event_delete"),
-    path("responsable/dues/generate/", admin_area.dues_generate, name="admin_dues_generate"),
     path("responsable/dues/set-rate/", admin_area.dues_set_rate, name="admin_dues_set_rate"),
     path("responsable/dues/<str:due_id>/toggle/", admin_area.dues_toggle, name="admin_dues_toggle"),
     path("responsable/members/print/", admin_area.members_print, name="admin_members_print"),

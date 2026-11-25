@@ -359,31 +359,20 @@ def _parsed_amount(request) -> int | None:
 @admin_required
 @require_POST
 def dues_set_rate(request):
-    """Fixe le montant de la cotisation pour l'année : sert de référence pour toute nouvelle cotisation
-    (génération manuelle ou création automatique quand un membre consulte sa page Cotisations)."""
+    """Fixe le montant de la cotisation pour l'année et l'applique immédiatement à tous les membres actifs,
+    sans exception : crée la cotisation de ceux qui n'en ont pas encore et aligne le montant de celles
+    déjà créées mais pas encore payées. Sert aussi de référence pour tout nouveau membre à l'avenir."""
     year = _year_of(request)
     amount = _parsed_amount(request)
     if amount is None:
         return redirect(f"{reverse('responsable')}?tab=dues&year={year}")
     try:
         ds.set_due_rate(year, amount)
-        flash.success(request, f"Montant {year} fixé à {amount} {settings.DUES_CURRENCY}.")
-    except ds.DataError as exc:
-        flash.error(request, str(exc))
-    return redirect(f"{reverse('responsable')}?tab=dues&year={year}")
-
-
-@admin_required
-@require_POST
-def dues_generate(request):
-    year = _year_of(request)
-    amount = _parsed_amount(request)
-    if amount is None:
-        return redirect(f"{reverse('responsable')}?tab=dues&year={year}")
-    try:
-        ds.set_due_rate(year, amount)
-        created = ds.ensure_dues(year, amount, [m["id"] for m in ds.get_active_members()])
-        flash.success(request, f"{created} cotisation(s) {year} créée(s) à {amount} {settings.DUES_CURRENCY}.")
+        created, updated = ds.apply_due_rate(year, amount, [m["id"] for m in ds.get_active_members()])
+        details = ", ".join(p for p in (f"{created} créée(s)" if created else "",
+                                         f"{updated} mise(s) à jour" if updated else "") if p)
+        suffix = f" ({details})" if details else ""
+        flash.success(request, f"Montant {year} fixé à {amount} {settings.DUES_CURRENCY} pour tous les membres actifs{suffix}.")
     except ds.DataError as exc:
         flash.error(request, str(exc))
     return redirect(f"{reverse('responsable')}?tab=dues&year={year}")

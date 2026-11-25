@@ -513,6 +513,20 @@ def ensure_dues(year: int, amount: int, member_ids: list[str]) -> int:
     return len(missing)
 
 
+def apply_due_rate(year: int, amount: int, member_ids: list[str]) -> tuple[int, int]:
+    """Fixe le montant pour TOUS les membres actifs, sans exception : crée la cotisation des membres qui n'en
+    ont pas encore et aligne le montant de celles déjà créées mais pas encore payées sur le nouveau montant.
+    Les cotisations déjà marquées payées ne sont jamais modifiées (le paiement reçu reste un fait acquis).
+    Retourne (nombre créées, nombre mises à jour)."""
+    existing = {str(d["member_id"]): d for d in get_dues(year)}
+    created = ensure_dues(year, amount, [mid for mid in member_ids if str(mid) not in existing])
+    to_update = [d["id"] for d in existing.values() if d["status"] != "paid" and int(d["amount"]) != amount]
+    if to_update:
+        _write(lambda: _table("dues").update({"amount": amount}).in_("id", to_update).execute(),
+               "Impossible de mettre à jour le montant des cotisations.", "Update due amounts")
+    return created, len(to_update)
+
+
 def get_or_create_due(member_id: str, year: int, amount: int) -> dict | None:
     for due in get_member_dues(member_id):
         if due["year"] == year:
