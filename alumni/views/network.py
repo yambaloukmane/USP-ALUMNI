@@ -1,4 +1,5 @@
 """Réseau : actualités, emplois, annuaire, événements, galerie."""
+import json
 import logging
 import uuid
 from datetime import datetime
@@ -7,22 +8,26 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib import messages as flash
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .. import data_service as ds
 from .. import ratelimit, storage
-from ..decorators import member_required
+from ..decorators import api_member_required, member_required
 from ..images import compress_jpeg
 from ..profile_form import OFFER_LABELS, SEEK_LABELS, SITUATIONS
-from ._common import DEFAULT_NEWS_IMAGE, JOB_TYPES, MAX_UPLOAD_BYTES, session_member
+from ._common import DEFAULT_NEWS_IMAGE, JOB_TYPES, MAX_TEXT_LENGTH, MAX_UPLOAD_BYTES, session_member
 
 log = logging.getLogger(__name__)
 
 MEMBERS_PER_PAGE = 24
 PHOTOS_PER_PAGE = 36
+POST_TYPES = {"news", "job"}
+MAX_COMMENT_LENGTH = 2000
 
 
 def is_admin(request) -> bool:
@@ -42,15 +47,131 @@ def _apply_link(job: dict) -> tuple[str, bool]:
     return reverse("contact"), False
 
 
+def _post_key(post_type: str, post_id) -> str:
+    return f"{post_type}:{post_id}"
+
+
+def _display_name(member: dict) -> str:
+    return f"{member.get('first_name') or ''} {member.get('last_name') or ''}".strip() or "Membre"
+
+
 @member_required
+@ensure_csrf_cookie
 def feed(request):
-    jobs = []
+    me = session_member(request)["id"]
+
+    likes = ds.get_likes()
+    like_counts: dict[str, int] = {}
+    liked_by_me: set[str] = set()
+    for like in likes:
+        key = _post_key(like["post_type"], like["post_id"])
+        like_counts[key] = like_counts.get(key, 0) + 1
+        if str(like["member_id"]) == me:
+            liked_by_me.add(key)
+    comment_counts = ds.get_comment_counts()
+    members_by_email = {m["email"]: m for m in ds.get_members() if m.get("email")}
+
+    posts = []
+    for item in ds.get_news():
+        key = _post_key("news", item["id"])
+        posts.append({
+            "post_type": "news", "id": item["id"], "title": item["title"], "body": item.get("desc") or "",
+            "img": item.get("img") or DEFAULT_NEWS_IMAGE, "date_label": item.get("date") or "",
+            "created_at": item.get("created_at") or "", "author": "AEPS-ALUMNI", "author_id": "",
+            "initials": "AE", "like_count": like_counts.get(key, 0), "liked": key in liked_by_me,
+            "comment_count": comment_counts.get(key, 0),
+        })
     for job in ds.get_public_jobs():
         href, external = _apply_link(job)
-        jobs.append({**job, "apply_href": href, "apply_external": external})
-    return render(request, "alumni/feed.html", {
-        "news": ds.get_news(), "jobs": jobs, "default_news_image": DEFAULT_NEWS_IMAGE,
-    })
+        key = _post_key("job", job["id"])
+        poster = members_by_email.get(job.get("posted_by") or "")
+        author = _display_name(poster) if poster else "Un membre du réseau"
+        posts.append({
+            "post_type": "job", "id": job["id"], "title": job["title"], "body": "",
+            "company": job.get("company") or "", "location": job.get("location") or "",
+            "salary": job.get("salary") or "", "job_type": job.get("type") or "CDI",
+            "expires_at": job.get("expires_at") or "", "apply_href": href, "apply_external": external,
+            "created_at": job.get("created_at") or "", "author": author,
+            "author_id": str(poster["id"]) if poster else "",
+            "initials": "".join(p[:1] for p in author.split()[:2]).upper() or "AL",
+            "like_count": like_counts.get(key, 0), "liked": key in liked_by_me,
+            "comment_count": comment_counts.get(key, 0),
+        })
+    posts.sort(key=lambda p: p.get("created_at") or "", reverse=True)
+    return render(request, "alumni/feed.html", {"posts": posts, "default_news_image": DEFAULT_NEWS_IMAGE})
+
+
+def _post_exists(post_type: str, post_id: str) -> bool:
+    if post_type == "news":
+        return any(str(n["id"]) == str(post_id) for n in ds.get_news())
+    if post_type == "job":
+        return any(str(j["id"]) == str(post_id) for j in ds.get_jobs())
+    return False
+
+
+@api_member_required
+@require_POST
+def api_feed_like(request, post_type, post_id):
+    if post_type not in POST_TYPES or not _post_exists(post_type, post_id):
+        return JsonResponse({"error": "Publication introuvable."}, status=404)
+    me = session_member(request)["id"]
+    if not ratelimit.hit("feed-like", me, 60, 300):
+        return JsonResponse({"error": ratelimit.TOO_MANY}, status=429)
+    liked = ds.toggle_like(post_type, post_id, me)
+    count = sum(1 for like in ds.get_likes() if like["post_type"] == post_type and str(like["post_id"]) == str(post_id))
+    return JsonResponse({"liked": liked, "count": count})
+
+
+@api_member_required
+@require_GET
+def api_feed_comments(request, post_type, post_id):
+    if post_type not in POST_TYPES:
+        return JsonResponse({"error": "Type invalide."}, status=400)
+    me = session_member(request)["id"]
+    names = {str(m["id"]): _display_name(m) for m in ds.get_members()}
+    comments = ds.get_comments(post_type, post_id)
+    return JsonResponse({"comments": [{
+        "id": c["id"], "body": c["body"], "author": names.get(str(c["member_id"]), "Membre"),
+        "mine": str(c["member_id"]) == me, "created_at": c.get("created_at") or "",
+    } for c in comments]})
+
+
+@api_member_required
+@require_POST
+def api_feed_comment(request, post_type, post_id):
+    if post_type not in POST_TYPES or not _post_exists(post_type, post_id):
+        return JsonResponse({"error": "Publication introuvable."}, status=404)
+    member = session_member(request)
+    try:
+        payload = json.loads(request.body or b"{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Requête invalide."}, status=400)
+    body = str(payload.get("body", "")).strip()
+    if not body or len(body) > min(MAX_COMMENT_LENGTH, MAX_TEXT_LENGTH):
+        return JsonResponse({"error": "Commentaire invalide."}, status=400)
+    if not ratelimit.hit("feed-comment", member["id"], 20, 600):
+        return JsonResponse({"error": ratelimit.TOO_MANY}, status=429)
+    try:
+        comment = ds.add_comment(post_type, post_id, member["id"], body)
+    except ds.DataError as exc:
+        return JsonResponse({"error": str(exc)}, status=502)
+    return JsonResponse({"comment": {
+        "id": comment["id"], "body": comment["body"], "author": _display_name(member),
+        "mine": True, "created_at": comment.get("created_at") or "",
+    }})
+
+
+@api_member_required
+@require_POST
+def api_feed_comment_delete(request, comment_id):
+    comment = ds.get_comment(comment_id)
+    if not comment:
+        return JsonResponse({"error": "Commentaire introuvable."}, status=404)
+    me = session_member(request)["id"]
+    if str(comment["member_id"]) != me and not is_admin(request):
+        return JsonResponse({"error": "Action non autorisée."}, status=403)
+    ds.delete_comment(comment_id)
+    return JsonResponse({"ok": True})
 
 
 @member_required

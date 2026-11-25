@@ -1,180 +1,117 @@
 {% extends "alumni/base.html" %}
+{% load static %}
 {% block title %}Actualités & Emplois - AEPS-ALUMNI{% endblock %}
 
 {% block content %}
 <div class="container-page py-10 lg:py-14">
-  <div class="mb-8">
-    <h1 class="text-3xl lg:text-4xl font-bold">Actualités et opportunités</h1>
-    <p class="mt-2 text-lg text-gray-600">Les nouvelles du réseau et les offres partagées par les anciens.</p>
+  {% csrf_token %}
+  <div class="mb-8 flex flex-wrap items-start justify-between gap-6">
+    <div>
+      <h1 class="text-3xl lg:text-4xl font-bold">Fil du réseau</h1>
+      <p class="mt-2 text-lg text-gray-600">Actualités et offres partagées par les anciens.</p>
+    </div>
+    <a href="{% url 'job_propose' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-sky-100 text-sky-700 rounded-2xl font-semibold hover:bg-sky-50 transition-all shrink-0">
+      <i data-lucide="plus" class="w-5 h-5"></i> Proposer une offre
+    </a>
   </div>
 
-  <div class="mb-10 space-y-4">
-    <div class="flex p-2 bg-gray-100 rounded-2xl relative overflow-hidden">
-      <button type="button" data-tab="news" class="tab-btn flex-1 py-5 rounded-2xl font-semibold text-sm tracking-wide transition-all relative z-10 flex items-center justify-center gap-3">
-        <i data-lucide="newspaper" class="w-[18px] h-[18px]"></i> Actualités
-      </button>
-      <button type="button" data-tab="jobs" class="tab-btn flex-1 py-5 rounded-2xl font-semibold text-sm tracking-wide transition-all relative z-10 flex items-center justify-center gap-3">
-        <i data-lucide="briefcase" class="w-[18px] h-[18px]"></i> Offres d'emploi
-      </button>
-    </div>
-
+  <div class="max-w-2xl mx-auto mb-8 space-y-4">
     <div class="bg-white p-4 rounded-2xl shadow-md border border-gray-100">
       <div class="relative">
         <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
-        <input id="search" type="text" placeholder="Rechercher une actualité..."
+        <input id="feed-search" type="text" placeholder="Rechercher dans le fil..."
                class="w-full pl-16 pr-6 py-4 bg-gray-50 border border-transparent focus:border-sky-500 focus:bg-white rounded-xl outline-none font-bold transition-all text-black">
       </div>
     </div>
+    <div class="flex gap-2 bg-gray-100 p-1 rounded-2xl w-fit">
+      <button type="button" class="filter-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all" data-filter="all">Tout</button>
+      <button type="button" class="filter-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all" data-filter="news">Actualités</button>
+      <button type="button" class="filter-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all" data-filter="job">Offres</button>
+    </div>
   </div>
 
-  <!-- Actualités -->
-  <section id="panel-news">
-    {% if news %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" id="news-grid">
-      {% for item in news %}
-      <article class="searchable bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group flex flex-col"
-               data-search="{{ item.title|lower }} {{ item.desc|lower }}">
-        <div class="relative h-72 overflow-hidden">
-          <img src="{{ item.img|default:default_news_image }}" alt="{{ item.title }}" loading="lazy" referrerpolicy="no-referrer"
-               class="w-full h-full object-cover transition- duration-1000">
-          <div class="absolute top-6 right-6 bg-white/90 backdrop-blur-md px-6 py-2 rounded-2xl text-xs font-semibold tracking-wide shadow-sm">{{ item.date }}</div>
-        </div>
-        <div class="p-10 flex flex-col flex-grow">
-          <h3 class="text-2xl font-semibold text-gray-900 mb-4 line-clamp-2 leading-tight group-hover:text-sky-500 transition-colors">{{ item.title }}</h3>
-          <p class="text-gray-500 font-bold leading-relaxed line-clamp-3 mb-8 flex-grow">{{ item.desc }}</p>
-          <button type="button" class="open-news flex items-center gap-3 text-sky-700 font-semibold text-sm tracking-wide group/btn"
-                  data-title="{{ item.title }}" data-date="{{ item.date }}" data-desc="{{ item.desc }}" data-img="{{ item.img|default:default_news_image }}">
-            En savoir plus
-            <i data-lucide="arrow-right" class="w-[18px] h-[18px] group-hover/btn:translate-x-2 transition-"></i>
-          </button>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-    {% endif %}
-    <div id="news-empty" class="{% if news %}hidden{% endif %} bg-white p-20 rounded-3xl shadow-md border border-gray-100 text-center max-w-2xl mx-auto">
-      <i data-lucide="sparkles" class="w-16 h-16 text-gray-200 mx-auto mb-8"></i>
-      <h2 class="text-3xl font-semibold text-gray-900 mb-4 tracking-tight">Rien pour le moment</h2>
-      <p class="text-gray-500 font-bold text-lg">Revenez bientôt pour les dernières nouvelles du réseau.</p>
-    </div>
-  </section>
+  <div class="max-w-2xl mx-auto space-y-6" id="feed-list">
+    {% for post in posts %}
+    <article class="feed-post bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden"
+              data-type="{{ post.post_type }}"
+              data-search="{{ post.title|lower }} {{ post.body|lower }} {{ post.company|default:''|lower }} {{ post.location|default:''|lower }} {{ post.author|lower }}"
+              data-like-url="{% url 'api_feed_like' post.post_type post.id %}"
+              data-comments-url="{% url 'api_feed_comments' post.post_type post.id %}"
+              data-comment-url="{% url 'api_feed_comment' post.post_type post.id %}">
 
-  <!-- Emplois -->
-  <section id="panel-jobs" class="hidden">
-    <div class="max-w-5xl mx-auto mb-8 flex justify-end">
-      <a href="{% url 'job_propose' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-sky-100 text-sky-700 rounded-2xl font-semibold hover:bg-sky-50 transition-all"><i data-lucide="plus" class="w-5 h-5"></i> Proposer une offre</a>
-    </div>
-    {% if jobs %}
-    <div class="grid grid-cols-1 gap-8 max-w-5xl mx-auto" id="jobs-grid">
-      {% for job in jobs %}
-      <article class="searchable bg-white p-10 rounded-3xl shadow-sm border border-gray-100 hover:border-sky-500 hover:shadow-md transition-all group flex flex-col md:flex-row items-start md:items-center gap-10"
-               data-search="{{ job.title|lower }} {{ job.company|lower }} {{ job.location|lower }}">
-        <div class="w-24 h-24 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-700 shrink-0 group-hover:bg-sky-500 group-hover:text-white transition-all duration-500 shadow-inner">
-          <i data-lucide="briefcase" class="w-10 h-10"></i>
-        </div>
-        <div class="flex-grow space-y-4">
-          <div class="flex flex-wrap items-center gap-4">
-            <h3 class="text-3xl font-semibold text-gray-900 tracking-tight">{{ job.title }}</h3>
-            <span class="px-6 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-semibold tracking-wide border border-emerald-100">{{ job.type|default:"CDI" }}</span>
+      <div class="flex items-center gap-3 px-6 pt-5 pb-4">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-sm shrink-0 {% if post.post_type == 'job' %}bg-gray-500{% else %}bg-sky-600{% endif %}">{{ post.initials }}</div>
+        <div class="flex-grow min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-sm text-gray-900">{{ post.author }}</span>
+            <span class="text-[11px] font-bold tracking-wide px-2.5 py-1 rounded-full {% if post.post_type == 'job' %}bg-emerald-50 text-emerald-600{% else %}bg-sky-50 text-sky-700{% endif %}">
+              {% if post.post_type == "job" %}Offre d'emploi{% else %}Actualité{% endif %}
+            </span>
           </div>
-          <div class="flex flex-wrap gap-8 text-gray-500 font-bold text-sm">
-            <div class="flex items-center gap-3"><div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-sky-700"><i data-lucide="sparkles" class="w-4 h-4"></i></div>{{ job.company }}</div>
-            <div class="flex items-center gap-3"><div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-sky-700"><i data-lucide="map-pin" class="w-4 h-4"></i></div>{{ job.location }}</div>
-            {% if job.expires_at %}
-            <div class="flex items-center gap-3"><div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-sky-700"><i data-lucide="calendar" class="w-4 h-4"></i></div>Jusqu'au {{ job.expires_at }}</div>
-            {% endif %}
-            {% if job.salary %}
-            <div class="flex items-center gap-3"><div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-sky-700"><i data-lucide="dollar-sign" class="w-4 h-4"></i></div>{{ job.salary }}</div>
-            {% endif %}
-          </div>
+          <p class="text-xs text-gray-400 font-semibold mt-0.5">{{ post.date_label|default:post.created_at }}</p>
         </div>
-        <a href="{{ job.apply_href }}" {% if job.apply_external %}target="_blank" rel="noopener noreferrer"{% endif %} class="w-full md:w-auto px-10 py-5 bg-sky-600 text-white font-semibold rounded-2xl hover:bg-sky-700 shadow-md transition-all flex items-center justify-center gap-3 group/btn active:scale-95">
+      </div>
+
+      <div class="px-6 pb-5 space-y-3">
+        <h3 class="text-lg font-bold text-gray-900 leading-snug">{{ post.title }}</h3>
+        {% if post.body %}
+        <p class="text-sm leading-relaxed text-gray-600 font-medium whitespace-pre-line">{{ post.body }}</p>
+        {% endif %}
+
+        {% if post.post_type == "job" %}
+        <div class="flex flex-wrap gap-2 text-xs font-bold text-gray-700">
+          <span class="bg-gray-50 px-3.5 py-2 rounded-xl">{{ post.company }}</span>
+          <span class="bg-gray-50 px-3.5 py-2 rounded-xl">{{ post.location }}</span>
+          <span class="bg-emerald-50 text-emerald-600 px-3.5 py-2 rounded-xl">{{ post.job_type }}</span>
+          {% if post.salary %}<span class="bg-gray-50 px-3.5 py-2 rounded-xl">{{ post.salary }}</span>{% endif %}
+          {% if post.expires_at %}<span class="bg-gray-50 px-3.5 py-2 rounded-xl">Jusqu'au {{ post.expires_at }}</span>{% endif %}
+        </div>
+        {% else %}
+        <div class="w-full h-56 rounded-2xl overflow-hidden">
+          <img src="{{ post.img|default:default_news_image }}" alt="" loading="lazy" referrerpolicy="no-referrer" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+
+        {% if post.post_type == "job" %}
+        <a href="{{ post.apply_href }}" {% if post.apply_external %}target="_blank" rel="noopener noreferrer"{% endif %}
+           class="inline-flex items-center gap-2 bg-sky-600 text-white font-semibold text-sm px-6 py-3 rounded-2xl hover:bg-sky-700 transition-all">
           Postuler
-          <i data-lucide="arrow-right" class="w-5 h-5 group-hover/btn:translate-x-2 transition-"></i>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </a>
-      </article>
-      {% endfor %}
-    </div>
-    {% endif %}
-    <div id="jobs-empty" class="{% if jobs %}hidden{% endif %} bg-white p-20 rounded-3xl shadow-md border border-gray-100 text-center max-w-2xl mx-auto">
-      <i data-lucide="sparkles" class="w-16 h-16 text-gray-200 mx-auto mb-8"></i>
-      <h2 class="text-3xl font-semibold text-gray-900 mb-4 tracking-tight">Aucune opportunité</h2>
-      <p class="text-gray-500 font-bold text-lg">Le réseau prépare de nouvelles offres pour vous.</p>
-    </div>
-  </section>
-</div>
+        {% endif %}
+      </div>
 
-<!-- Détail d'une actualité -->
-<div id="news-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-gray-900/60 backdrop-blur-sm">
-  <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-md overflow-hidden max-h-[90vh] overflow-y-auto">
-    <img id="news-modal-img" src="" alt="" class="w-full h-64 object-cover" referrerpolicy="no-referrer">
-    <button type="button" id="news-modal-close" aria-label="Fermer" class="absolute top-4 right-4 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-gray-700 transition-all">
-      <i data-lucide="x" class="w-5 h-5"></i>
-    </button>
-    <div class="p-10 space-y-4">
-      <p id="news-modal-date" class="text-xs font-semibold text-sky-700 tracking-wide"></p>
-      <h3 id="news-modal-title" class="text-3xl font-semibold text-gray-900 tracking-tight"></h3>
-      <p id="news-modal-desc" class="text-gray-600 font-medium leading-relaxed whitespace-pre-line"></p>
-    </div>
+      <div class="flex items-center gap-1 border-t border-gray-50 px-4 py-1">
+        <button type="button" class="like-btn flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all {% if post.liked %}text-red-500{% else %}text-gray-500{% endif %}"
+                data-liked="{{ post.liked|yesno:'1,0' }}">
+          <i data-lucide="heart" class="w-[18px] h-[18px] like-icon"></i>
+          <span class="like-count">{{ post.like_count }}</span>
+        </button>
+        <button type="button" class="comment-toggle flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-gray-500 transition-all">
+          <i data-lucide="message-circle" class="w-[18px] h-[18px]"></i>
+          <span class="comment-count">{{ post.comment_count }}</span> commentaire<span class="comment-plural">{{ post.comment_count|pluralize }}</span>
+        </button>
+      </div>
+
+      <div class="comments-panel hidden border-t border-gray-50 bg-gray-50 px-6 py-4 space-y-3">
+        <div class="comments-list space-y-3"></div>
+        <form class="comment-form flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-sky-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">Moi</div>
+          <input type="text" class="comment-input flex-grow px-4 py-2.5 rounded-full border border-gray-200 bg-white text-sm font-semibold outline-none focus:border-sky-500" placeholder="Écrire un commentaire..." maxlength="2000">
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div id="feed-empty" class="{% if posts %}hidden{% endif %} max-w-2xl mx-auto bg-white p-16 rounded-3xl shadow-md border border-gray-100 text-center">
+    <i data-lucide="sparkles" class="w-16 h-16 text-gray-200 mx-auto mb-6"></i>
+    <h2 class="text-2xl font-semibold text-gray-900 mb-3 tracking-tight">Rien pour le moment</h2>
+    <p class="text-gray-500 font-bold">Revenez bientôt pour les dernières nouvelles du réseau.</p>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-(function () {
-  var active = "news";
-  var tabs = document.querySelectorAll(".tab-btn");
-  var search = document.getElementById("search");
-  var ON = ["bg-white", "text-gray-900", "shadow-xl"];
-  var OFF = ["text-gray-400", "hover:text-gray-600"];
-
-  function applyFilter() {
-    var q = search.value.trim().toLowerCase();
-    var visible = 0;
-    document.querySelectorAll("#panel-" + active + " .searchable").forEach(function (el) {
-      var match = !q || el.dataset.search.indexOf(q) !== -1;
-      el.classList.toggle("hidden", !match);
-      if (match) visible++;
-    });
-    var total = document.querySelectorAll("#panel-" + active + " .searchable").length;
-    var empty = document.getElementById(active + "-empty");
-    // Le message « vide » s'affiche s'il n'y a rien du tout, ou si la recherche ne trouve rien.
-    empty.classList.toggle("hidden", visible > 0);
-  }
-
-  function show(tab) {
-    active = tab;
-    document.getElementById("panel-news").classList.toggle("hidden", tab !== "news");
-    document.getElementById("panel-jobs").classList.toggle("hidden", tab !== "jobs");
-    tabs.forEach(function (b) {
-      var on = b.dataset.tab === tab;
-      ON.forEach(function (c) { b.classList.toggle(c, on); });
-      OFF.forEach(function (c) { b.classList.toggle(c, !on); });
-    });
-    search.placeholder = tab === "news" ? "Rechercher une actualité..." : "Poste, entreprise, ville...";
-    applyFilter();
-  }
-
-  tabs.forEach(function (b) { b.addEventListener("click", function () { show(b.dataset.tab); }); });
-  search.addEventListener("input", applyFilter);
-  show("news");
-
-  // Fenêtre de détail d'une actualité (textContent : aucun HTML injecté)
-  var modal = document.getElementById("news-modal");
-  function closeModal() { modal.classList.add("hidden"); }
-  document.querySelectorAll(".open-news").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      document.getElementById("news-modal-img").src = btn.dataset.img;
-      document.getElementById("news-modal-date").textContent = btn.dataset.date;
-      document.getElementById("news-modal-title").textContent = btn.dataset.title;
-      document.getElementById("news-modal-desc").textContent = btn.dataset.desc;
-      modal.classList.remove("hidden");
-    });
-  });
-  document.getElementById("news-modal-close").addEventListener("click", closeModal);
-  modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
-})();
-</script>
+<script src="{% static 'alumni/js/feed.js' %}?v={{ asset_v }}"></script>
 {% endblock %}

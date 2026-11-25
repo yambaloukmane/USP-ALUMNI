@@ -46,6 +46,26 @@ class MemberPagesTests(ViewTestCase):
     def test_feed_shows_apply_button(self):
         self.assertIn("mailto:rh@acme.fr", self.client.get("/feed/").content.decode())
 
+    def test_feed_like_and_comment(self):
+        self.client.get("/feed/")  # pose le cookie CSRF
+        csrf = self.client.cookies["csrftoken"].value
+        r = self.client.post("/feed/news/1/like/", HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), {"liked": True, "count": 1})
+        r = self.client.post("/feed/news/1/like/", HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(r.json(), {"liked": False, "count": 0})
+
+        r = self.client.post("/feed/news/1/comment/", json.dumps({"body": "Bravo !"}),
+                              content_type="application/json", HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["comment"]["body"], "Bravo !")
+        body = self.client.get("/feed/news/1/comments/").json()
+        self.assertEqual(len(body["comments"]), 1)
+
+        r = self.client.post("/feed/news/999/comment/", json.dumps({"body": "x"}),
+                              content_type="application/json", HTTP_X_CSRFTOKEN=csrf)
+        self.assertEqual(r.status_code, 404)
+
 
 class MessagingTests(ViewTestCase):
     def setUp(self):

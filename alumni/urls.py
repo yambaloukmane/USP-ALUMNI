@@ -29,6 +29,10 @@ urlpatterns = [
     # Réseau
     path("feed/", network.feed, name="feed"),
     path("jobs/propose/", network.job_propose, name="job_propose"),
+    path("feed/<str:post_type>/<str:post_id>/like/", network.api_feed_like, name="api_feed_like"),
+    path("feed/<str:post_type>/<str:post_id>/comments/", network.api_feed_comments, name="api_feed_comments"),
+    path("feed/<str:post_type>/<str:post_id>/comment/", network.api_feed_comment, name="api_feed_comment"),
+    path("feed/comment/<str:comment_id>/delete/", network.api_feed_comment_delete, name="api_feed_comment_delete"),
     path("members/", network.members, name="members"),
     path("events/", network.events_page, name="events"),
     path("events/<str:event_id>/rsvp/", network.event_rsvp, name="event_rsvp"),

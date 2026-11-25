@@ -345,6 +345,76 @@ def delete_job(job_id: str) -> None:
     cache.delete("jobs")
 
 
+# --------------------------------------------------------------- Fil : likes & commentaires
+def get_likes() -> list[dict]:
+    try:
+        return _rows(_table("post_likes").select("post_type,post_id,member_id").limit(20000).execute())
+    except Exception as exc:  # noqa: BLE001
+        log.error("Fetch likes failed: %s", exc)
+        return []
+
+
+def toggle_like(post_type: str, post_id: str, member_id: str) -> bool:
+    """Ajoute ou retire le « J'aime » d'un membre sur une publication. Retourne True si désormais aimé."""
+    existing = _rows(_table("post_likes").select("id").eq("post_type", post_type).eq("post_id", post_id)
+                      .eq("member_id", member_id).limit(1).execute())
+
+    def action():
+        if existing:
+            return _table("post_likes").delete().eq("id", existing[0]["id"]).execute()
+        return _table("post_likes").insert(
+            {"post_type": post_type, "post_id": post_id, "member_id": member_id}).execute()
+
+    _write(action, "Impossible d'enregistrer votre réaction.", "Toggle like")
+    return not existing
+
+
+def get_comment_counts() -> dict[str, int]:
+    try:
+        rows = _rows(_table("post_comments").select("post_type,post_id").limit(20000).execute())
+    except Exception as exc:  # noqa: BLE001
+        log.error("Fetch comment counts failed: %s", exc)
+        return {}
+    counts: dict[str, int] = {}
+    for row in rows:
+        key = f"{row['post_type']}:{row['post_id']}"
+        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def get_comments(post_type: str, post_id: str) -> list[dict]:
+    try:
+        return _rows(_table("post_comments").select("*").eq("post_type", post_type).eq("post_id", post_id)
+                      .order("created_at").limit(500).execute())
+    except Exception as exc:  # noqa: BLE001
+        log.error("Fetch comments failed: %s", exc)
+        return []
+
+
+def get_comment(comment_id: str) -> dict | None:
+    try:
+        rows = _rows(_table("post_comments").select("*").eq("id", comment_id).limit(1).execute())
+        return rows[0] if rows else None
+    except Exception as exc:  # noqa: BLE001
+        log.error("Fetch comment failed: %s", exc)
+        return None
+
+
+def add_comment(post_type: str, post_id: str, member_id: str, body: str) -> dict:
+    payload = {"post_type": post_type, "post_id": post_id, "member_id": member_id, "body": body}
+    response = _write(lambda: _table("post_comments").insert(payload).execute(),
+                       "Impossible d'ajouter le commentaire.", "Add comment")
+    rows = _rows(response)
+    if not rows:
+        raise DataError("Impossible d'ajouter le commentaire.")
+    return rows[0]
+
+
+def delete_comment(comment_id: str) -> None:
+    _write(lambda: _table("post_comments").delete().eq("id", comment_id).execute(),
+           "Impossible de supprimer le commentaire.", "Delete comment")
+
+
 # --------------------------------------------------------------------- Événements
 def get_events() -> list[dict]:
     return _cached_list("events", lambda: _table("events").select("*").order("starts_at").limit(300).execute())

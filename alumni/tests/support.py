@@ -24,9 +24,26 @@ class Store:
         self.jobs = [{"id": "1", "title": "Dev", "company": "ACME", "location": "Abidjan", "salary": "", "type": "CDI",
                       "status": "approved", "apply_contact": "rh@acme.fr", "expires_at": None}]
         self.events, self.rsvps, self.dues, self.photos = [], [], [], []
+        self.likes, self.comments = [], []
 
     def install(self, testcase):
         s = self
+
+        def _toggle_like(post_type, post_id, member_id):
+            key = (post_type, str(post_id), str(member_id))
+            existing = next((l for l in s.likes if (l["post_type"], str(l["post_id"]), str(l["member_id"])) == key), None)
+            if existing:
+                s.likes.remove(existing)
+                return False
+            s.likes.append({"post_type": post_type, "post_id": str(post_id), "member_id": str(member_id)})
+            return True
+
+        def _add_comment(post_type, post_id, member_id, body):
+            c = {"id": str(len(s.comments) + 1), "post_type": post_type, "post_id": str(post_id),
+                 "member_id": str(member_id), "body": body, "created_at": "2024-01-01T00:00:00+00:00"}
+            s.comments.append(c)
+            return c
+
         def _sm(me, to, text, label):
             m = {"id": str(len(s.messages) + 1), "sender_id": me, "receiver_id": to, "text": text, "time": label,
                  "is_read": False, "created_at": f"2024-01-01T00:00:{len(s.messages):02d}+00:00"}
@@ -52,6 +69,15 @@ class Store:
             "mark_as_read": lambda a, b: None, "get_unread_count": lambda e: 0, "save_message": _sm,
             "add_news": lambda *a, **k: None, "delete_member": lambda i: s.members.remove(next(m for m in s.members if m["id"] == i)),
             "admin_update_member": lambda i, f: next(m for m in s.members if m["id"] == i).update(f),
+            "get_likes": lambda: s.likes, "toggle_like": _toggle_like,
+            "get_comment_counts": lambda: {
+                f"{c['post_type']}:{c['post_id']}": sum(1 for x in s.comments if x["post_type"] == c["post_type"] and x["post_id"] == c["post_id"])
+                for c in s.comments
+            },
+            "get_comments": lambda pt, pid: [c for c in s.comments if c["post_type"] == pt and c["post_id"] == str(pid)],
+            "get_comment": lambda cid: next((c for c in s.comments if c["id"] == str(cid)), None),
+            "add_comment": _add_comment,
+            "delete_comment": lambda cid: s.comments.remove(next(c for c in s.comments if c["id"] == str(cid))),
         }
         for name, fn in patches.items():
             p = mock.patch.object(ds, name, fn)
