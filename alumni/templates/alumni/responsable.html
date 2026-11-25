@@ -209,13 +209,19 @@
   </div>
 
   {% else %}
-  <div class="flex flex-col md:flex-row gap-6 mb-8 no-print">
-    <form method="post" action="{% url 'admin_dues_generate' %}" class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap items-end gap-4 flex-1">{% csrf_token %}
-      <div><label for="d-year" class="block text-sm font-semibold text-gray-700 mb-1">Année</label><input id="d-year" name="year" type="number" value="{{ year }}" class="w-28 p-3 bg-gray-50 border border-gray-100 rounded-xl"></div>
-      <div><label for="d-amount" class="block text-sm font-semibold text-gray-700 mb-1">Montant ({{ currency }})</label><input id="d-amount" name="amount" type="number" min="5" step="5" value="{{ default_amount }}" class="w-36 p-3 bg-gray-50 border border-gray-100 rounded-xl"></div>
-      <button class="px-6 py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700">Générer pour tous les membres actifs</button>
+  <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6 no-print">
+    <form id="d-rate-form" method="post" action="{% url 'admin_dues_set_rate' %}" class="flex flex-wrap items-end gap-4">{% csrf_token %}
+      <div><label for="d-year" class="block text-sm font-semibold text-gray-700 mb-1">Année</label>
+        <input id="d-year" name="year" type="number" value="{{ year }}" class="w-28 p-3 bg-gray-50 border border-gray-100 rounded-xl"></div>
+      <div><label for="d-amount" class="block text-sm font-semibold text-gray-700 mb-1">Montant de la cotisation ({{ currency }})</label>
+        <input id="d-amount" name="amount" type="number" min="5" step="5" value="{{ default_amount }}" class="w-44 p-3 bg-gray-50 border border-gray-100 rounded-xl"></div>
+      <button type="submit" class="px-5 py-3 bg-white border-2 border-sky-600 text-sky-700 font-semibold rounded-xl hover:bg-sky-50">Enregistrer le montant</button>
+      <button type="submit" formaction="{% url 'admin_dues_generate' %}" class="px-5 py-3 bg-sky-600 text-white font-semibold rounded-xl hover:bg-sky-700">Enregistrer et générer pour tous les membres actifs</button>
+      <a href="{% url 'admin_export_dues' %}?year={{ year }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl font-bold text-gray-700 hover:bg-gray-50"><i data-lucide="download" class="w-[18px] h-[18px]"></i> CSV {{ year }}</a>
     </form>
-    <a href="{% url 'admin_export_dues' %}?year={{ year }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 self-start"><i data-lucide="download" class="w-[18px] h-[18px]"></i> CSV {{ year }}</a>
+    <p class="mt-3 text-xs font-semibold text-gray-400">
+      {% if configured_rate %}Montant actuellement fixé pour {{ year }} : {{ configured_rate }} {{ currency }}.{% else %}Aucun montant fixé pour {{ year }} pour l'instant : un nouveau membre se verra appliquer le montant par défaut tant qu'il n'est pas enregistré ici.{% endif %}
+    </p>
   </div>
   <p class="mb-4 font-bold text-gray-600">{{ paid_count }} / {{ dues|length }} payées · {{ paid_sum }} {{ currency }}</p>
   <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto">

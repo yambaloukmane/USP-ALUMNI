@@ -134,6 +134,22 @@ class AdminTests(ViewTestCase):
         self.assertIn("Prenom2", body)
         self.assertNotIn("Prenom1", body)
 
+    def test_responsable_sets_and_uses_due_rate(self):
+        self.client.post("/responsable/", {"password": "adm"})
+        r = self.client.post("/responsable/dues/set-rate/", {"year": "2026", "amount": "7500"})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.store.due_rates[2026], 7500)
+
+        r = self.client.post("/responsable/dues/generate/", {"year": "2026", "amount": "9000"})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.store.due_rates[2026], 9000)  # le montant est remplacé par celui de la génération
+        self.assertEqual(len(self.store.dues), 2)  # les 2 membres actifs (le 3e est en attente de validation)
+        self.assertTrue(all(d["amount"] == 9000 for d in self.store.dues))
+
+        r = self.client.post("/responsable/dues/set-rate/", {"year": "2026", "amount": "0"})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.store.due_rates[2026], 9000)  # montant invalide : inchangé
+
     def test_role_based_admin_is_revoked_when_role_removed(self):
         self.store.members[0]["role"] = "admin"
         self.login("1")  # la connexion d'un admin ouvre l'espace Responsable

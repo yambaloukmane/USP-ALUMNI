@@ -25,6 +25,8 @@ class Store:
                       "status": "approved", "apply_contact": "rh@acme.fr", "expires_at": None}]
         self.events, self.rsvps, self.dues, self.photos = [], [], [], []
         self.likes, self.comments = [], []
+        self.due_rates: dict[int, int] = {}
+        self.due_rates = {}
 
     def install(self, testcase):
         s = self
@@ -37,6 +39,16 @@ class Store:
                 return False
             s.likes.append({"post_type": post_type, "post_id": str(post_id), "member_id": str(member_id)})
             return True
+
+        def _ensure_dues(year, amount, member_ids):
+            existing = {d["member_id"] for d in s.dues if d["year"] == year}
+            created = 0
+            for mid in member_ids:
+                if mid not in existing:
+                    s.dues.append({"id": str(len(s.dues) + 1), "member_id": mid, "year": year, "amount": amount,
+                                   "status": "pending", "method": "", "reference": None, "paid_at": None})
+                    created += 1
+            return created
 
         def _add_comment(post_type, post_id, member_id, body):
             c = {"id": str(len(s.comments) + 1), "post_type": post_type, "post_id": str(post_id),
@@ -62,6 +74,13 @@ class Store:
             "get_events": lambda: s.events, "get_rsvps": lambda: s.rsvps, "get_photos": lambda: s.photos,
             "get_dues": lambda year=None: s.dues, "get_member_dues": lambda i: [d for d in s.dues if d["member_id"] == i],
             "get_or_create_due": lambda m, y, a: None, "get_due_by_reference": lambda r: None,
+            "get_due_rate": lambda y: s.due_rates.get(y), "set_due_rate": lambda y, a: s.due_rates.__setitem__(y, a),
+            "ensure_dues": _ensure_dues,
+            "get_due": lambda i: next((d for d in s.dues if d["id"] == str(i)), None),
+            "mark_due_paid": lambda i, method: next(d for d in s.dues if d["id"] == str(i)).update(
+                {"status": "paid", "method": method}),
+            "mark_due_pending": lambda i: next(d for d in s.dues if d["id"] == str(i)).update(
+                {"status": "pending", "paid_at": None}),
             "get_contact_summaries": lambda me: {},
             "get_group_last": lambda room: None,
             "get_group_conversation": lambda room, after=None: [m for m in s.messages if m["receiver_id"] == room],

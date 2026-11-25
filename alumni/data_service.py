@@ -487,6 +487,22 @@ def get_due_by_reference(reference: str) -> dict | None:
         return None
 
 
+def get_due_rate(year: int) -> int | None:
+    """Montant de cotisation défini par les responsables pour l'année, ou None si jamais configuré."""
+    try:
+        rows = _rows(_table("due_rates").select("amount").eq("year", year).limit(1).execute())
+        return int(rows[0]["amount"]) if rows else None
+    except Exception as exc:  # noqa: BLE001
+        log.error("Fetch due rate failed: %s", exc)
+        return None
+
+
+def set_due_rate(year: int, amount: int) -> None:
+    payload = {"year": year, "amount": amount, "updated_at": datetime.now(timezone.utc).isoformat()}
+    _write(lambda: _table("due_rates").upsert(payload, on_conflict="year").execute(),
+           "Impossible d'enregistrer le montant de la cotisation.", "Set due rate")
+
+
 def ensure_dues(year: int, amount: int, member_ids: list[str]) -> int:
     """Crée la cotisation de l'année pour chaque membre qui n'en a pas encore. Retourne le nombre créé."""
     existing = {str(d["member_id"]) for d in get_dues(year)}

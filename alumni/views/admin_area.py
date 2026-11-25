@@ -155,7 +155,9 @@ def _context(request, tab: str) -> dict:
             if m:
                 rows.append({**due, "name": f"{m.get('last_name', '')} {m.get('first_name', '')}".strip(), "promo": m.get("promo", "")})
         rows.sort(key=lambda r: (r["status"] == "paid", r["name"].lower()))
-        ctx.update(year=year, dues=rows, default_amount=settings.DUES_AMOUNT, currency=settings.DUES_CURRENCY,
+        configured_rate = ds.get_due_rate(year)
+        ctx.update(year=year, dues=rows, default_amount=configured_rate or settings.DUES_AMOUNT,
+                   configured_rate=configured_rate, currency=settings.DUES_CURRENCY,
                    paid_count=sum(1 for r in rows if r["status"] == "paid"),
                    paid_sum=sum(int(r["amount"]) for r in rows if r["status"] == "paid"))
     return ctx
@@ -343,20 +345,45 @@ def _year_of(request) -> int:
         return timezone.localdate().year
 
 
+def _parsed_amount(request) -> int | None:
+    try:
+        amount = int(request.POST.get("amount") or 0)
+    except ValueError:
+        amount = 0
+    if amount <= 0:
+        flash.error(request, "Montant invalide.")
+        return None
+    return amount
+
+
+@admin_required
+@require_POST
+def dues_set_rate(request):
+    """Fixe le montant de la cotisation pour l'année : sert de référence pour toute nouvelle cotisation
+    (génération manuelle ou création automatique quand un membre consulte sa page Cotisations)."""
+    year = _year_of(request)
+    amount = _parsed_amount(request)
+    if amount is None:
+        return redirect(f"{reverse('responsable')}?tab=dues&year={year}")
+    try:
+        ds.set_due_rate(year, amount)
+        flash.success(request, f"Montant {year} fixé à {amount} {settings.DUES_CURRENCY}.")
+    except ds.DataError as exc:
+        flash.error(request, str(exc))
+    return redirect(f"{reverse('responsable')}?tab=dues&year={year}")
+
+
 @admin_required
 @require_POST
 def dues_generate(request):
     year = _year_of(request)
-    try:
-        amount = int(request.POST.get("amount") or settings.DUES_AMOUNT)
-        if amount <= 0:
-            raise ValueError
-    except ValueError:
-        flash.error(request, "Montant invalide.")
+    amount = _parsed_amount(request)
+    if amount is None:
         return redirect(f"{reverse('responsable')}?tab=dues&year={year}")
     try:
+        ds.set_due_rate(year, amount)
         created = ds.ensure_dues(year, amount, [m["id"] for m in ds.get_active_members()])
-        flash.success(request, f"{created} cotisation(s) {year} créée(s).")
+        flash.success(request, f"{created} cotisation(s) {year} créée(s) à {amount} {settings.DUES_CURRENCY}.")
     except ds.DataError as exc:
         flash.error(request, str(exc))
     return redirect(f"{reverse('responsable')}?tab=dues&year={year}")

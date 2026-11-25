@@ -37,8 +37,9 @@ def settle_due(due: dict) -> str:
 def dues_page(request):
     me = session_member(request)["id"]
     year = timezone.localdate().year
+    amount = ds.get_due_rate(year) or settings.DUES_AMOUNT
     try:
-        current = ds.get_or_create_due(me, year, settings.DUES_AMOUNT)
+        current = ds.get_or_create_due(me, year, amount)
     except ds.DataError as exc:
         flash.error(request, str(exc))
         current = None
