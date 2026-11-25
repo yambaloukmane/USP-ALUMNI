@@ -33,7 +33,8 @@ class Store:
 
         def _toggle_like(post_type, post_id, member_id):
             key = (post_type, str(post_id), str(member_id))
-            existing = next((l for l in s.likes if (l["post_type"], str(l["post_id"]), str(l["member_id"])) == key), None)
+            existing = next((row for row in s.likes
+                              if (row["post_type"], str(row["post_id"]), str(row["member_id"])) == key), None)
             if existing:
                 s.likes.remove(existing)
                 return False
