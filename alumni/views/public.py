@@ -12,7 +12,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from .. import data_service as ds
 from .. import ratelimit
-from ._common import valid_email
+from ._common import external_url, valid_email
 
 log = logging.getLogger(__name__)
 
@@ -106,4 +106,40 @@ def service_worker(request):
     return response
 
 
-__all__ = ["home", "about", "services", "treasury", "offline", "contact", "manifest", "service_worker"]
+# ------------------------------------------------------------ Référencement (SEO)
+# Pages publiques indexables : (chemin, nom de route, fréquence de mise à jour, priorité)
+PUBLIC_PAGES = [
+    ("/", "home", "weekly", "1.0"),
+    ("/about/", "about", "monthly", "0.6"),
+    ("/services/", "services", "monthly", "0.6"),
+    ("/treasury/", "treasury", "monthly", "0.5"),
+    ("/contact/", "contact", "monthly", "0.5"),
+]
+
+
+@require_GET
+def robots_txt(request):
+    disallow = [
+        "/login/", "/register/", "/forgot/", "/profile/", "/bienvenue/", "/avatar/",
+        "/feed/", "/jobs/propose/", "/members/", "/events/", "/gallery/", "/cotisations/",
+        "/messages/", "/responsable/", "/offline/", "/manifest.webmanifest", "/sw.js",
+    ]
+    lines = ["User-agent: *"] + [f"Disallow: {path}" for path in disallow] + [
+        "", f"Sitemap: {external_url('/sitemap.xml')}",
+    ]
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
+
+
+@require_GET
+def sitemap_xml(request):
+    urls = "".join(
+        f"<url><loc>{external_url(path)}</loc><changefreq>{freq}</changefreq><priority>{prio}</priority></url>"
+        for path, _name, freq, prio in PUBLIC_PAGES
+    )
+    xml = f'<?xml version="1.0" encoding="UTF-8"?>' \
+          f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    return HttpResponse(xml, content_type="application/xml")
+
+
+__all__ = ["home", "about", "services", "treasury", "offline", "contact", "manifest", "service_worker",
+           "robots_txt", "sitemap_xml"]

@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.test import override_settings
 
 from .support import ViewTestCase
@@ -16,6 +17,28 @@ class PublicPagesTests(ViewTestCase):
         r = self.client.get("/manifest.webmanifest")
         self.assertEqual(json.loads(r.content)["short_name"], "AEPS-ALUMNI")
         self.assertIn("javascript", self.client.get("/sw.js")["Content-Type"])
+
+    def test_robots_and_sitemap(self):
+        robots = self.client.get("/robots.txt").content.decode()
+        self.assertIn("Disallow: /responsable/", robots)
+        self.assertIn("Sitemap:", robots)
+        sitemap = self.client.get("/sitemap.xml")
+        self.assertEqual(sitemap["Content-Type"], "application/xml")
+        body = sitemap.content.decode()
+        base = settings.SITE_URL.rstrip("/")
+        self.assertIn(f"<loc>{base}/</loc>", body)
+        self.assertIn(f"<loc>{base}/about/</loc>", body)
+
+    def test_pages_have_canonical_and_og_tags(self):
+        body = self.client.get("/about/").content.decode()
+        self.assertIn(f'rel="canonical" href="{settings.SITE_URL.rstrip("/")}/about/"', body)
+        self.assertIn('property="og:title"', body)
+        self.assertIn('name="description"', body)
+
+    def test_auth_pages_are_noindex(self):
+        for url in ("/login/", "/register/", "/forgot/"):
+            with self.subTest(url=url):
+                self.assertIn('name="robots" content="noindex, nofollow"', self.client.get(url).content.decode())
 
     def test_private_pages_require_login(self):
         for url in ("/feed/", "/members/", "/messages/", "/events/", "/gallery/", "/cotisations/", "/profile/"):

@@ -3,8 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}AEPS-ALUMNI - Réseau des Anciens Élèves{% endblock %}</title>
-  <meta name="description" content="Portail dynamique pour la communauté AEPS-ALUMNI">
+  <title>{% block title %}AEPS-ALUMNI - Réseau des Anciens Élèves de la Prépa de San-Pédro{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}AEPS-ALUMNI, le réseau des anciens élèves de la Prépa de San-Pédro : annuaire, actualités, offres d'emploi, événements et entraide entre promotions.{% endblock %}">
+  <link rel="canonical" href="{{ canonical_url }}">
+  {% block robots %}{% endblock %}
+  <meta property="og:site_name" content="AEPS-ALUMNI">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:title" content="AEPS-ALUMNI - Réseau des Anciens Élèves de la Prépa de San-Pédro">
+  <meta property="og:description" content="AEPS-ALUMNI, le réseau des anciens élèves de la Prépa de San-Pédro : annuaire, actualités, offres d'emploi, événements et entraide entre promotions.">
+  <meta property="og:image" content="{{ og_image }}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AEPS-ALUMNI - Réseau des Anciens Élèves de la Prépa de San-Pédro">
+  <meta name="twitter:description" content="AEPS-ALUMNI, le réseau des anciens élèves de la Prépa de San-Pédro : annuaire, actualités, offres d'emploi, événements et entraide entre promotions.">
   <link rel="manifest" href="{% url 'manifest' %}">
   <meta name="theme-color" content="#0ea5e9">
   <link rel="apple-touch-icon" href="{% static 'alumni/icons/icon-192.png' %}">

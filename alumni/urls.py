@@ -12,6 +12,8 @@ urlpatterns = [
     path("offline/", public.offline, name="offline"),
     path("manifest.webmanifest", public.manifest, name="manifest"),
     path("sw.js", public.service_worker, name="service_worker"),
+    path("robots.txt", public.robots_txt, name="robots_txt"),
+    path("sitemap.xml", public.sitemap_xml, name="sitemap_xml"),
 
     # Compte
     path("login/", auth.login_view, name="login"),

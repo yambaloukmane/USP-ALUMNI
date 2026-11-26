@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from django.conf import settings
+from django.templatetags.static import static
 from django.urls import reverse
 
 
@@ -30,4 +31,6 @@ def site(request):
         "contact_email": settings.CONTACT_EMAIL,
         "contact_phone": settings.CONTACT_PHONE,
         "require_approval": settings.REQUIRE_APPROVAL,
+        "canonical_url": settings.SITE_URL.rstrip("/") + request.path,
+        "og_image": settings.SITE_URL.rstrip("/") + static("alumni/icons/icon-512.png"),
     }
