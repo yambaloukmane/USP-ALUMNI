@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AEPS-ALUMNI</string>
+    <string name="title_activity_main">AEPS-ALUMNI</string>
+    <string name="package_name">com.aepsalumni.app</string>
+    <string name="custom_url_scheme">com.aepsalumni.app</string>
+</resources>

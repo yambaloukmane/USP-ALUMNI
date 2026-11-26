@@ -1,0 +1,18 @@
+{
+  "name": "aeps-alumni-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Application mobile AEPS-ALUMNI (wrapper Capacitor autour du site usp-alumini.vercel.app)",
+  "scripts": {
+    "sync": "cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.11",
+    "@capacitor/cli": "^7.6.11",
+    "@capacitor/core": "^7.6.11",
+    "@capacitor/ios": "^7.6.11"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}

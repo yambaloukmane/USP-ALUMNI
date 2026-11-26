@@ -1,0 +1,18 @@
+{
+  "appId": "com.aepsalumni.app",
+  "appName": "AEPS-ALUMNI",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://usp-alumini.vercel.app",
+    "cleartext": false
+  },
+  "backgroundColor": "#ffffff",
+  "android": {
+    "backgroundColor": "#ffffff"
+  },
+  "ios": {
+    "backgroundColor": "#ffffff",
+    "contentInset": "automatic"
+  }
+}

@@ -1,0 +1,45 @@
+name: Build iOS (simulateur)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/ios-build.yml"
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Build pour simulateur (sans signature)
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Sync Capacitor (web assets -> native project)
+        run: npx cap sync ios
+
+      - name: Install CocoaPods dependencies
+        working-directory: mobile/ios/App
+        run: pod install
+
+      - name: Build for iOS Simulator (no code signing)
+        working-directory: mobile/ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
